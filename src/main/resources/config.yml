@@ -1,0 +1,75 @@
+# TurtleRoles configuration. Authority comes from the stored role, not from permission
+# nodes or OP except for the single designated OWNER.
+
+limits:
+  helper-temp-mute-seconds: 3600
+  moderator-temp-mute-seconds: 604800
+  moderator-temp-ban-seconds: 604800
+  reason-max-length: 240
+
+history:
+  page-size: 8
+
+mute:
+  blocked-command-aliases:
+    - msg
+    - tell
+    - w
+    - whisper
+    - reply
+    - r
+    - me
+
+inventory-inspection:
+  refresh-ticks: 10
+
+presentation:
+  overhead-tags-enabled: true
+
+security:
+  strict-op-reconciliation: true
+
+resource-pack:
+  enabled: true
+  auto-send-on-join: true
+  required: true
+  # Host build/distributions/ConquestSMP-resource-pack.zip at a public HTTPS URL and
+  # paste that URL here. Do not use localhost for remote players.
+  url: ""
+  # Paste the generated SHA-1 from build/distributions/ConquestSMP-resource-pack.sha1.
+  sha1: ""
+  uuid: "6d68e47c-1680-478f-bd80-f54ef82dfef0"
+  timeout-seconds: 45
+  max-retries: 1
+  prompt: "Conquest SMP tab logo, role badges and the 3D King's Crown."
+  # Use a hosting allocation that accepts TCP HTTP, or an HTTPS proxy.
+  self-host:
+    enabled: false
+    port: 2053
+
+# Vanilla-client server-list description. Width is adjustable for client font differences.
+server-list:
+  enabled: true
+  width-pixels: 250
+  title: 'welcome to the conquest smp'
+  subtitle: 'law of the strongest.'
+
+notifications:
+  enabled: true
+  sound: minecraft:block.note_block.pling
+  volume: 0.18
+  pitch: 1.8
+
+server:
+  player-limit: 499
+worlds:
+  border-width: 15000
+
+
+# Knockback II enchantment impulse (0.5 per level), without dealing sword damage.
+spawn-barrier:
+  knockback-strength: 1.0
+
+ender-dragon:
+  # Vanilla 200 health becomes 1000. Existing health fractions survive adoption/restart.
+  health-multiplier: 5.0

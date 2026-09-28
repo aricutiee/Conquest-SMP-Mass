@@ -1,0 +1,214 @@
+name: ConquestSMP
+version: '${version}'
+main: dev.turtleroles.TurtleRolesPlugin
+api-version: '1.21.11'
+load: POSTWORLD
+authors: [ari]
+description: Conquest SMP races, utilities, events, TurtleRoles and KingsCrown integration.
+softdepend: [KingsCrown, GrimAC, floodgate, AuthMe, Essentials, EssentialsSpawn]
+
+commands:
+  rtp:
+    description: Random safe teleport within the Terralith Overworld border.
+    usage: /rtp
+  smp:
+    description: Start the SMP once and begin the 24-hour Booster kit unlock timer.
+    usage: /smp start
+    permission: conquestsmp.launch
+  kit:
+    description: Preview your Booster kit and claim its contents; operators can edit the kit.
+    usage: /kit [edit]
+  enderchest:
+    description: Ender chest commands are disabled; use a physical chest outside combat.
+    aliases: [ec, echest]
+  home:
+    description: Teleport to one of your saved homes.
+    usage: /home [name]
+  homes:
+    description: List your saved homes and rank limit.
+  sethome:
+    description: Save a named home within your rank allowance.
+    usage: /sethome [name]
+  delhome:
+    description: Delete a named home.
+    usage: /delhome [name]
+  spawn:
+    description: Teleport to spawn, select its protected cuboid, or toggle the pre-launch border.
+    usage: /spawn [area|border]
+  worldspawn:
+    description: Teleport to Conquest world spawn.
+  setworldspawn:
+    description: Set the spawn teleport and fallback respawn point, without adding protection.
+    aliases: [setspawn]
+  dimensions:
+    description: Open the administrator Nether and End access controls.
+  conquestac:
+    description: Show the Grim integration and non-punitive policy status.
+    usage: /conquestac
+    permission: conquest.anticheat.status
+  race:
+    description: View your race or start your saved first-join roll.
+    usage: /race [info|set <player> <race>|reset <player>|reload]
+    permission: biomeraces.use
+  roll:
+    description: Preview the race roll without changing your saved race.
+    usage: /roll
+    permission: conquest.races.roll
+  events:
+    description: Conquest SMP event administration and Assassins enrollment.
+    usage: /events [start|stop|winner|reward|status|assassins join|mace give]
+  event:
+    description: Open the event menu or end the current event.
+    usage: /event [end]
+  warlordevent:
+    description: Reveal Warlord relic locations or preview the animation.
+    usage: /warlordevent [preview|retry|start <player>]
+  warlord:
+    description: Warlord Purge controls; end previews the animation without killing a player.
+    usage: /warlord [event|end|preview|start <player>]
+  juggernaut:
+    description: Designate a player with an automatic Juggernaut or Warlord loadout.
+    usage: /juggernaut [warlord] [player]
+  role:
+    description: View and manage TurtleRoles roles.
+    usage: /role
+    aliases: [roles]
+  tr:
+    description: TurtleRoles utility and diagnostic command.
+    usage: /tr help
+    aliases: [turtleroles]
+  warn:
+    description: Warn a known player.
+  warnings:
+    description: View player warnings.
+  unwarn:
+    description: Revoke a warning case.
+  tempmute:
+    description: Temporarily mute a known player.
+  mute:
+    description: Permanently mute a known player.
+  unmute:
+    description: Revoke a mute case.
+  tempban:
+    description: Temporarily ban a known player.
+  ban:
+    description: Permanently ban a known player.
+  unban:
+    description: Revoke a ban case.
+  kick:
+    description: Kick a known online player.
+  history:
+    description: View moderation case history.
+  case:
+    description: View a moderation case.
+  gamemode:
+    description: Protected gamemode changes.
+    aliases: [gm]
+  invsee:
+    description: Read-only inventory inspection of lower-ranked players.
+
+  util:
+    aliases: [utils]
+    description: Open the ServerUtil administration GUI.
+    usage: /util [reload]
+    permission: serverutil.use
+  report:
+    description: Report a player to staff.
+    usage: /report <player> <reason>
+    permission: serverutil.report
+  reports:
+    description: Open the reports GUI.
+    usage: /reports
+    permission: serverutil.reports.manage
+  staffmode:
+    description: Toggle Staff Mode.
+    usage: /staffmode
+    permission: serverutil.staffmode
+  staffchat:
+    description: Send or toggle staff chat.
+    usage: /staffchat [message]
+    permission: serverutil.staffchat
+    aliases: []
+  sc:
+    description: Send or toggle staff chat.
+    usage: /sc [message]
+    permission: serverutil.staffchat
+
+permissions:
+  conquestsmp.launch: {default: op}
+  conquest.world.admin: {default: op}
+  conquest.anticheat.status: {default: op}
+  biomeraces.use: {default: true}
+  conquest.races.roll: {default: op}
+  biomeraces.admin.set: {default: op}
+  biomeraces.admin.reset: {default: op}
+  biomeraces.admin.reload: {default: op}
+  biomeraces.admin:
+    default: op
+    children:
+      biomeraces.admin.set: true
+      biomeraces.admin.reset: true
+      biomeraces.admin.reload: true
+      conquest.races.roll: true
+  shocksmp.events.admin: {default: op}
+  shocksmp.events.kit: {default: op}
+  shocksmp.events.reward: {default: op}
+  shocksmp.events.mace: {default: op}
+  turtleroles.staff:
+    default: false
+  turtleroles.admin:
+    default: false
+  turtleroles.owner:
+    default: false
+
+  serverutil.use: {default: op}
+  serverutil.reload: {default: op}
+  serverutil.punishments: {default: op}
+  serverutil.punishments.warn: {default: op}
+  serverutil.punishments.tempmute: {default: op}
+  serverutil.punishments.mute: {default: op}
+  serverutil.punishments.tempban: {default: op}
+  serverutil.punishments.ban: {default: op}
+  serverutil.punishments.clearinventory: {default: op}
+  serverutil.punishments.clearenderchest: {default: op}
+  serverutil.punishments.revoke: {default: op}
+  serverutil.punishments.protected: {default: false}
+  serverutil.punishments.overrideprotected: {default: op}
+  serverutil.players: {default: op}
+  serverutil.players.heal: {default: op}
+  serverutil.players.feed: {default: op}
+  serverutil.players.effects: {default: op}
+  serverutil.players.gamemode: {default: op}
+  serverutil.players.inventory.view: {default: op}
+  serverutil.players.inventory.edit: {default: op}
+  serverutil.players.enderchest.view: {default: op}
+  serverutil.players.enderchest.edit: {default: op}
+  serverutil.players.sensitive: {default: op}
+  serverutil.report: {default: true}
+  serverutil.reports.manage: {default: op}
+  serverutil.reports.notes: {default: op}
+  serverutil.freeze: {default: op}
+  serverutil.freeze.bypass: {default: op}
+  serverutil.history: {default: op}
+  serverutil.rollback: {default: op}
+  serverutil.announcement: {default: op}
+  serverutil.graceperiod: {default: op}
+  serverutil.graceperiod.bypass: {default: op}
+  serverutil.vanish: {default: op}
+  serverutil.vanish.see: {default: op}
+  serverutil.staffmode: {default: op}
+  serverutil.keyall: {default: op}
+  serverutil.lockdown: {default: op}
+  serverutil.lockdown.bypass: {default: op}
+  serverutil.chat.clear: {default: op}
+  serverutil.chat.lock: {default: op}
+  serverutil.chat.bypass: {default: op}
+  serverutil.chat.slowmode: {default: op}
+  serverutil.chat.filter: {default: op}
+  serverutil.chat.filter.bypass: {default: op}
+  serverutil.staffchat: {default: op}
+  serverutil.restart: {default: op}
+  serverutil.performance: {default: op}
+  serverutil.performance.cleanup: {default: op}
+  serverutil.audit: {default: op}
+  serverutil.audit.export: {default: op}

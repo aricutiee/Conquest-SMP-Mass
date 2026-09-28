@@ -1,0 +1,102 @@
+# Conquest SMP event defaults. Existing files are never overwritten on update.
+egg-hunt:
+  worlds: [world]
+  # Spawn only around survival/adventure players exploring loaded terrain.
+  preparation-timeout-seconds: 30
+  initial-eggs: 4
+  placement-interval-ticks: 20
+  scan-attempts-per-cycle: 12
+  max-placements-per-cycle: 2
+  spawn-min-distance: 18
+  spawn-max-distance: 48
+  per-player-area-limit: 8
+  global-active-limit: 48
+  max-spawns-per-chunk: 4
+  minimum-spacing: 8
+  retire-distant-when-full: true
+  retire-distance: 112
+  max-retire-per-cycle: 2
+  rare-one-in: 8
+  normal-points: 5
+  rare-points: 20
+assassins:
+  join-window-seconds: 60
+  minimum-participants: 3
+  disconnect-grace-seconds: 60
+juggernaut:
+  # Automatic loadout. Each armor piece is one separate mythic pickup claim.
+  # Two pearl stacks use the server's actual legal pearl stack size.
+  loadout:
+    speed-potions: 3
+    strength-potions: 8
+    fire-resistance-potions: 3
+    # All loadout potions are splash. The crown is the only head equipment.
+    turtle-master-potions: 2
+    healing-potions: 4
+    experience-bottles: 128
+    wind-charges: 64
+    breeze-rods: 128
+    cobwebs: 128
+    pearl-stacks: 2
+  enchantments:
+    armor:
+      protection: 5
+      unbreaking: 3
+      mending: 1
+      respiration: 3
+      aqua_affinity: 1
+      swift_sneak: 3
+      feather_falling: 4
+      depth_strider: 3
+      soul_speed: 3
+    sword:
+      sharpness: 6
+      unbreaking: 3
+      mending: 1
+      fire_aspect: 2
+      looting: 3
+      sweeping_edge: 3
+    axe:
+      sharpness: 5
+      efficiency: 5
+      unbreaking: 3
+      mending: 1
+      fortune: 3
+    pickaxe:
+      efficiency: 5
+      unbreaking: 3
+      mending: 1
+      fortune: 3
+    spear:
+      lunge: 3
+      unbreaking: 3
+      mending: 1
+warlord:
+  armor:
+    threshold-health: 8.0
+    absorption-seconds: 15
+    cooldown-seconds: 60
+  blade:
+    step-multiplier: 1.10
+    timeout-millis: 3000
+    # Temporary vanilla sound. Exact Minecraft Dungeons critical-hit OGG is not verified.
+    sound: minecraft:entity.player.attack.crit
+
+# Independent locator-bar window. Manual starts only; no automatic schedule.
+pvp-hour:
+  automatic: false
+  duration-seconds: 3600
+  interval-seconds: 14400
+
+# Seven public relic chests. Reveal each through /warlordevent.
+warlord-purge:
+  minimum-radius: 500
+  maximum-radius: 1500
+  enchantments:
+    helmet: {protection: 5}
+    chestplate: {protection: 5}
+    leggings: {protection: 5}
+    boots: {protection: 5}
+    sword: {sharpness: 5}
+    axe: {sharpness: 5, efficiency: 5}
+    pickaxe: {efficiency: 5, fortune: 3}

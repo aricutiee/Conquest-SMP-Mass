@@ -1,0 +1,11 @@
+# Restart after changing settings. Timers use real elapsed seconds.
+tag-seconds: 45
+mace-after-glide-seconds: 10
+# Ender pearls are prohibited, including pickup, use and pearl teleportation.
+# This replaces the former ender-pearl-cooldown-seconds setting.
+spear:
+  lunges-before-cooldown: 3
+  cooldown-seconds: 15
+# Requires the bundled conquest-lunge.zip server datapack.
+bossbar: 'Combat: {seconds}s | Elytra and tridents disabled'
+# All Conquest combat and race cooldowns use purple boss bars.

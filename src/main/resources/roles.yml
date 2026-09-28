@@ -1,0 +1,56 @@
+roles:
+  owner:
+    label: OWNER
+    weight: 700
+    actual-op: true
+    glyph: "\uE001"
+  co_owner:
+    label: CO-OWNER
+    weight: 600
+    actual-op: true
+    glyph: "\uE002"
+  sr_admin:
+    label: SR ADMIN
+    weight: 500
+    actual-op: true
+    glyph: "\uE003"
+  admin:
+    label: ADMIN
+    weight: 400
+    actual-op: true
+    glyph: "\uE004"
+  moderator:
+    label: MODERATOR
+    weight: 300
+    actual-op: false
+    glyph: "\uE005"
+  helper:
+    label: HELPER
+    weight: 200
+    actual-op: false
+    glyph: "\uE006"
+  media:
+    label: MEDIA
+    weight: 150
+    actual-op: false
+    glyph: "\uE009"
+  member:
+    label: MEMBER
+    weight: 100
+    actual-op: false
+    glyph: "\uE007"
+  sser:
+    label: SSER
+    weight: 350
+    actual-op: true
+    glyph: "\uE00A"
+  booster:
+    label: BOOSTER
+    weight: 125
+    actual-op: false
+    glyph: "\uE00B"
+  booster_x2:
+    label: BOOSTER X2
+    weight: 130
+    actual-op: false
+    glyph: "\uE00C"

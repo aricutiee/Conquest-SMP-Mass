@@ -1,0 +1,21 @@
+# Restart after editing. Timers use elapsed real time and survive normal restarts.
+automatic: true
+interval-seconds: 14400
+# An overdue drop waits until at least one player is online; no catch-up burst.
+minimum-radius: 500
+maximum-radius: 1500
+maximum-location-attempts: 40
+title: 'LOOT DROP HAS SPAWNED'
+sound: ENTITY_ENDER_DRAGON_GROWL
+sound-volume: 1.0
+sound-pitch: 1.0
+loot:
+  enchanted-golden-apples: {min: 1, max: 2}
+  netherite-ingots: {min: 1, max: 2}
+  upgrade-templates: {min: 1, max: 1}
+  nether-wart: {min: 8, max: 32}
+  golden-apples: {min: 4, max: 16}
+  emeralds: {min: 2, max: 64}
+  diamonds: {min: 16, max: 64}
+# Every chest additionally receives exactly one random unenchanted diamond
+# weapon, tool or armor piece. Stacks are split and placed in shuffled slots.

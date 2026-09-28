@@ -1,0 +1,64 @@
+chat-input:
+  timeout: 60sec
+punishments:
+  default-reason: "No reason provided"
+reports:
+  cooldown: 60sec
+announcement:
+  title: "<red><bold><message>"
+  subtitle: "<gray>Announcement from <staff>"
+  fade-in-ticks: 10
+  stay-ticks: 70
+  fade-out-ticks: 20
+  sound: ENTITY_ENDER_DRAGON_GROWL
+  volume: 1.0
+  pitch: 1.0
+freeze:
+  title: "<red><bold>Frozen"
+  subtitle: "<gray>Do not disconnect."
+  allowed-commands:
+    - "/msg"
+    - "/tell"
+staff-mode:
+  enable-vanish: true
+  enable-flight: true
+  invulnerable: true
+grace:
+  set-world-peaceful: true
+  start-title: "<green><bold>GRACE PERIOD STARTED"
+  start-subtitle: "<gray>Peaceful protection is active for <yellow><duration>"
+  countdown-subtitle: "<yellow>Grace period ending..."
+  end-title: "<red><bold>GRACE PERIOD ENDED"
+  end-subtitle: "<yellow>All grace protections have been removed."
+rollbacks:
+  max-snapshots-per-player: 25
+  retention: 30d
+chat:
+  clear-lines: 120
+  filter:
+    patterns:
+      - "(?i)examplebadword"
+staffchat:
+  log: true
+restart:
+  command: "restart"
+  sound: BLOCK_NOTE_BLOCK_PLING
+  milestones:
+    - 10min
+    - 5min
+    - 1min
+    - 30sec
+    - 10sec
+    - 5sec
+    - 4sec
+    - 3sec
+    - 2sec
+    - 1sec
+performance:
+  sample-interval-seconds: 30
+  cleanup:
+    enabled: false
+    batch-size: 100
+    protected-types:
+      - VILLAGER
+      - ARMOR_STAND

@@ -1,0 +1,4 @@
+prefix: "<gray>[<green>TurtleRoles</green>]</gray>"
+storage-unavailable: "TurtleRoles storage is unavailable. Try again later."
+unknown-known-player: "That player is not known yet. They must join once, or use a known UUID already stored by TurtleRoles."
+pack-missing-url: "Resource-pack URL or SHA-1 is missing; colored text fallback remains active."

@@ -1,0 +1,76 @@
+no-permission: "<red>You do not have permission."
+reload: "<green>ServerUtil reloaded."
+player-not-found: "<red>That player is not known to this server yet."
+chat-input:
+  cancel-help: "<gray>Type <yellow>cancel <gray>to cancel."
+  cancelled: "<yellow>Input cancelled."
+  timeout: "<red>Input timed out."
+punishments:
+  prompt-player: "<yellow>Enter the target username or UUID."
+  prompt-duration: "<yellow>Enter a duration, such as 30min, 1hr, or 1d12h30m."
+  prompt-reason: "<yellow>Enter a reason. Leave blank for the configured default."
+  protected: "<red>That player is protected."
+  ban-kick: "<red>You were banned. Reason: <reason>"
+  login-ban: "<red>You are banned. Reason: <reason>"
+  muted-chat: "<red>You are muted and cannot speak in public chat."
+  broadcast:
+    warning: "<red>[Punishment] <player> was warned by <staff>. Reason: <reason>"
+    temp-mute: "<red>[Punishment] <player> was muted for <duration> by <staff>. Reason: <reason>"
+    mute: "<red>[Punishment] <player> was permanently muted by <staff>. Reason: <reason>"
+    temp-ban: "<red>[Punishment] <player> was banned for <duration> by <staff>. Reason: <reason>"
+    ban: "<red>[Punishment] <player> was permanently banned by <staff>. Reason: <reason>"
+    clear-inventory: "<red>[Punishment] <player>'s inventory was cleared by <staff>."
+    clear-ender: "<red>[Punishment] <player>'s ender chest was cleared by <staff>."
+reports:
+  no-self: "<red>You cannot report yourself."
+  cooldown: "<red>Please wait <remaining> seconds before reporting again."
+  submitted: "<green>Your report was sent to staff."
+  staff-notify: "<red>[Report] <reporter> reported <player>: <reason>"
+rollbacks:
+  prompt-player: "<yellow>Enter the player whose death snapshots you want to view."
+announcement:
+  prompt: "<yellow>Enter the announcement text."
+  empty: "<red>Announcements cannot be empty."
+grace:
+  start: "<gold>Grace period started for <duration>. Damage, hunger, fire, and fall protection are active."
+  stop: "<yellow>Grace period cancelled. All grace protections were removed."
+  expired: "<yellow>Grace period ended. All grace protections were removed."
+  blocked: "<red>PvP is disabled during the grace period."
+  prompt-duration: "<yellow>Enter the grace period duration."
+vanish:
+  fake-leave: "<yellow><player> left the game"
+  fake-join: "<yellow><player> joined the game"
+  reminder: "<gray>You are vanished."
+freeze:
+  frozen: "<red>You are frozen. Do not disconnect."
+  unfrozen: "<green>You are no longer frozen."
+  command-blocked: "<red>You cannot use that command while frozen."
+  disconnect-alert: "<red><player> disconnected while frozen."
+notes:
+  prompt: "<yellow>Enter a private staff note."
+keyall:
+  sent: "<green>Items sent to <count> online players."
+  dropped: "<yellow>Some Key All items did not fit and were dropped at your feet."
+chat:
+  locked: "<red>Global chat was locked by <staff>."
+  unlocked: "<green>Global chat was unlocked by <staff>."
+  lock-blocked: "<red>Global chat is locked."
+  slow-blocked: "<red>Please wait <remaining> before chatting again."
+  cleared: "<yellow>Chat was cleared by <staff>."
+  filter-notify: "<red>Blocked filtered chat from <player>."
+  prompt-slow: "<yellow>Enter the slow-mode delay. Use 0sec to disable."
+staffchat:
+  format: "<dark_aqua>[Staff] <staff>: <message>"
+  toggle-on: "<green>Staff chat mode enabled."
+  toggle-off: "<yellow>Staff chat mode disabled."
+restart:
+  prompt-duration: "<yellow>Enter the restart countdown duration."
+  scheduled: "<red>Restart scheduled by <staff> in <duration>."
+  cancelled: "<yellow>Restart cancelled by <staff>."
+  milestone: "<red>Restart in <remaining>."
+lockdown:
+  prompt-reason: "<yellow>Enter the lockdown reason."
+  enabled: "<red>Server lockdown enabled by <staff>. Reason: <reason>"
+  disabled: "<green>Server lockdown disabled by <staff>."
+  kick: "<red>Server lockdown: <reason>"
+  login: "<red>The server is locked down. Reason: <reason>"
