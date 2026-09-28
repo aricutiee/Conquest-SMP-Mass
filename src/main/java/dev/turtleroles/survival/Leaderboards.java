@@ -138,8 +138,8 @@ public final class Leaderboards implements Listener, CommandExecutor, TabComplet
             Stats s=m==Metric.streaks?(entry==null?null:entry.player):(i<top.size()?top.get(i):null);
             Component line=m==Metric.streaks?streakRow(i,entry):row(i,s,m);set(view.text.get(i+3),line);
             String plain=net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line);
-            float x=-fontWidth(plain)*.0125f+(fontWidth("#"+(i+1)+"  ")+8)*.025f;
-            view.heads.get(i).setTransformationMatrix(faceTransform(x,(11-i)*.30f+.10f));
+            float x=-fontWidth(plain)*.0125f+(fontWidth("#"+(i+1)+"  ")+9)*.025f;
+            view.heads.get(i).setTransformationMatrix(faceTransform(x,(11-i)*.30f+.2325f));
             ItemStack desired=s==null?new ItemStack(Material.AIR):head(s);
             if(!view.heads.get(i).getItemStack().equals(desired))view.heads.get(i).setItemStack(desired);
         }
@@ -157,7 +157,7 @@ public final class Leaderboards implements Listener, CommandExecutor, TabComplet
                 });view.text.add(display);viewer.showEntity(plugin,display);
             }
             for(int i=0;i<10;i++){
-                final float y=(11-i)*.30f+.10f;
+                final float y=(11-i)*.30f+.2325f;
                 ItemDisplay display=anchor.getWorld().spawn(anchor,ItemDisplay.class,e->{
                     setup(e);e.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.HEAD);
                     e.setTransformationMatrix(faceTransform(0,y));
@@ -175,6 +175,9 @@ public final class Leaderboards implements Listener, CommandExecutor, TabComplet
         };return width;
     }
     static Matrix4f faceTransform(float x,float y){
+        // HEAD skull geometry is centered 0.25 units below its item origin.
+        // The row anchor includes 0.095 (= 0.25 * 0.38) to compensate,
+        // plus 0.1375 for the center of the TextDisplay glyphs.
         // Compress depth without changing the skin/profile or front-facing orientation.
         return new Matrix4f().translation(x,y,.02f).rotateY((float)Math.PI).scale(.38f,.38f,.0001f);
     }

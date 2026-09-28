@@ -1,6 +1,6 @@
 # Conquest SMP: player and staff guide
 
-Version 3.17.2 | Paper 1.21.11 | Author: ari
+Version 3.17.3 | Paper 1.21.11 | Author: ari
 
 This guide describes the implemented Conquest rules and the installed integrations. It supersedes older release notes where the rules changed. Timings and loot amounts below are the shipped settings unless identified otherwise. Administrators can change configuration, rewards and third-party permissions later.
 
