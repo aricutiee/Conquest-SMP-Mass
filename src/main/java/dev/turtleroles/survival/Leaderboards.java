@@ -47,6 +47,10 @@ public final class Leaderboards implements Listener, CommandExecutor, TabComplet
     private BukkitTask task;private int cycles;private boolean closed;
     public Leaderboards(TurtleRolesPlugin plugin){this.plugin=plugin;file=plugin.getDataFolder().toPath().resolve("leaderboards.yml");load();}
     public void start(){
+        if(!plugin.getConfig().getBoolean("leaderboards.range-120-applied",false)){
+            plugin.getConfig().set("leaderboards.view-distance",120);
+            plugin.getConfig().set("leaderboards.range-120-applied",true);plugin.saveConfig();
+        }
         Bukkit.getPluginManager().registerEvents(this,plugin);
         var command=Objects.requireNonNull(plugin.getCommand("leaderboard"));command.setExecutor(this);command.setTabCompleter(this);
         importQueue.addAll(Arrays.asList(Bukkit.getOfflinePlayers()));
@@ -94,7 +98,7 @@ public final class Leaderboards implements Listener, CommandExecutor, TabComplet
         EnumMap<Metric,List<Stats>> rankings=new EnumMap<>(Metric.class);
         for(Metric m:Metric.values())rankings.put(m,rank(stats.values(),m));
         Set<Key> wanted=new HashSet<>();
-        double distance=Math.clamp(plugin.getConfig().getDouble("leaderboards.view-distance",24),8,48);
+        double distance=Math.clamp(plugin.getConfig().getDouble("leaderboards.view-distance",120),8,120);
         for(Player player:Bukkit.getOnlinePlayers()){
             if(!dev.turtleroles.service.ClientCompatibility.authenticated(player))continue;
             for(var entry:positions.entrySet()){
@@ -183,7 +187,7 @@ public final class Leaderboards implements Listener, CommandExecutor, TabComplet
     }
     private static void setup(Display e){
         e.setVisibleByDefault(false);e.setPersistent(false);e.setInvulnerable(true);e.setGravity(false);
-        e.setBillboard(Display.Billboard.CENTER);e.setBrightness(new Display.Brightness(15,15));e.setViewRange(1.5f);
+        e.setBillboard(Display.Billboard.CENTER);e.setBrightness(new Display.Brightness(15,15));e.setViewRange(4f);
         e.setDisplayWidth(8);e.setDisplayHeight(10);
     }
     private boolean admin(CommandSender sender){return sender.hasPermission("conquest.leaderboard.admin")||dev.turtleroles.service.GameplayBypass.allowed(plugin,sender instanceof Player p?p:null);}

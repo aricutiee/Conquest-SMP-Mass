@@ -75,7 +75,7 @@ ender-dragon:
   health-multiplier: 5.0
 
 leaderboards:
-  view-distance: 24
+  view-distance: 120
 weapon-damage-caps:
   spear: 0.70
   mace: 0.99

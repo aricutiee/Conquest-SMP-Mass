@@ -275,7 +275,7 @@ Place a floating board at your position using one of these:
 * `/leaderboard set streaks`
 * `/leaderboard set playtime`
 
-Each type has one saved location; setting it again moves it. `/leaderboard remove <type>` removes it. The footer is near the administrator's feet and the rows extend upward. The default viewing distance is 24 blocks. Text faces each viewer and is hidden by intervening players and blocks; the board does not follow a player around the world.
+Each type has one saved location; setting it again moves it. `/leaderboard remove <type>` removes it. The footer is near the administrator's feet and the rows extend upward. The viewing distance is 120 blocks maximum, checked once per second. Server display tracking must be at least 120 blocks and chunk view distance at least eight chunks; client settings may reduce visibility. Text faces each viewer and is hidden by intervening players and blocks; the board does not follow a player around the world.
 
 Boards show ten ranked entries and each viewer's own stat below. Kills, deaths and playtime use the same native records as the sidebar. Offline records import gradually after startup. Flat skin portraits sit beside player names and refresh when players join.
 
