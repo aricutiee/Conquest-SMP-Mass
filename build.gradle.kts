@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "dev.turtleroles"
-version = "3.17.4"
+version = "3.17.5"
 
 java {
     toolchain {
@@ -72,9 +72,11 @@ val generateRoleAssets by tasks.registering(JavaExec::class) {
         generatedZip.get().asFile.absolutePath,
         generatedSha1.get().asFile.absolutePath,
         file("design/crown").absolutePath,
-        file("design/logo/conquest-smp.png").absolutePath
+        file("design/logo/conquest-smp.png").absolutePath,
+        file("design/audio").absolutePath
     )
     inputs.dir("design/crown")
+    inputs.dir("design/audio")
     inputs.file("design/logo/conquest-smp.png")
     outputs.dir(generatedPackDir)
     outputs.dir(generatedBadgeDir)

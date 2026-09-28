@@ -37,8 +37,8 @@ public final class BadgeAssetGenerator {
     private static final Map<Character, String[]> FONT = font();
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 7) {
-            throw new IllegalArgumentException("Expected packDir badgeDir previewDir zip sha1 crownDir logoPng");
+        if (args.length != 8) {
+            throw new IllegalArgumentException("Expected packDir badgeDir previewDir zip sha1 crownDir logoPng audioDir");
         }
         Path packDir = Path.of(args[0]);
         Path badgeDir = Path.of(args[1]);
@@ -94,6 +94,11 @@ public final class BadgeAssetGenerator {
         SidebarFontGenerator.write(textureDir, fontDir, previewDir);
 
         Files.createDirectories(zip.getParent());
+        copyCrownAsset(Path.of(args[7]).resolve("warlord_dread.ogg"),packDir.resolve("assets/conquestsmp/sounds/warlord_dread.ogg"));
+        copyCrownAsset(Path.of(args[7]).resolve("CREDITS.txt"),packDir.resolve("MUSIC-CREDITS.txt"));
+        Files.writeString(packDir.resolve("assets/conquestsmp/sounds.json"),"""
+            {"warlord_dread":{"sounds":[{"name":"conquestsmp:warlord_dread","stream":true}]}}
+            """,StandardCharsets.UTF_8);
         zipDirectory(packDir, zip);
         Files.writeString(sha1, hex(sha1(Files.readAllBytes(zip))) + System.lineSeparator(), StandardCharsets.UTF_8);
     }

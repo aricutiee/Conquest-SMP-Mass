@@ -1,6 +1,6 @@
 # Conquest SMP: player and staff guide
 
-Version 3.17.4 | Paper 1.21.11 | Author: ari
+Version 3.17.5 | Paper 1.21.11 | Author: ari
 
 This guide describes the implemented Conquest rules and the installed integrations. It supersedes older release notes where the rules changed. Timings and loot amounts below are the shipped settings unless identified otherwise. Administrators can change configuration, rewards and third-party permissions later.
 
@@ -317,3 +317,5 @@ The 3.17.0 build passed 279 automated tests with no failures or skips, plus its 
 ## Death animation previews
 
 Admins can use `/juggernaut animation` and `/warlord animation` in game to preview the death sequences at their location. These do not kill anyone, end an event, start a hunt or issue rewards. Nearby players can see the visual effects.
+
+Warlord music: The Dread by Kevin MacLeod (incompetech.com), licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). The first 13 seconds are used with fades. Java players receive it through the server pack; Bedrock uses a vanilla fallback.

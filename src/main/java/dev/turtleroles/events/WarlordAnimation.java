@@ -20,6 +20,7 @@ final class WarlordAnimation implements AutoCloseable {
     private final JavaPlugin plugin;
     private final Set<Sequence> animations=new HashSet<>();
     private final Map<UUID,Integer> musicUsers=new HashMap<>();
+    private final Map<UUID,String> musicSounds=new HashMap<>();
     WarlordAnimation(JavaPlugin plugin){this.plugin=plugin;}
 
     void play(Location origin,List<ItemStack> gear,boolean preview,Runnable finished) {
@@ -61,8 +62,11 @@ final class WarlordAnimation implements AutoCloseable {
             }
             for(Player player:world.getPlayers())if(player.getLocation().distanceSquared(base)<=128*128){
                 audience.add(player.getUniqueId());
-                if(musicUsers.merge(player.getUniqueId(),1,Integer::sum)==1)
-                    player.playSound(player.getLocation(),Sound.MUSIC_DISC_11,SoundCategory.RECORDS,.55f,.9f);
+                if(musicUsers.merge(player.getUniqueId(),1,Integer::sum)==1){
+                    String sound=dev.turtleroles.service.ClientCompatibility.bedrock(player)?"minecraft:music_disc.11":"conquestsmp:warlord_dread";
+                    musicSounds.put(player.getUniqueId(),sound);
+                    player.playSound(player.getLocation(),sound,SoundCategory.RECORDS,.65f,1f);
+                }
             }
         }
         @Override public void run(){
@@ -134,7 +138,7 @@ final class WarlordAnimation implements AutoCloseable {
             for(UUID id:audience){
                 int users=musicUsers.getOrDefault(id,1)-1;
                 if(users>0)musicUsers.put(id,users);
-                else {musicUsers.remove(id);Player player=Bukkit.getPlayer(id);if(player!=null)player.stopSound(Sound.MUSIC_DISC_11,SoundCategory.RECORDS);}
+                else {musicUsers.remove(id);Player player=Bukkit.getPlayer(id);String sound=musicSounds.remove(id);if(player!=null&&sound!=null)player.stopSound(sound,SoundCategory.RECORDS);}
             }
         }
     }
