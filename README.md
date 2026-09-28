@@ -20,7 +20,7 @@ King's Crown remains a separate optional integration. GrimAC, Floodgate, Geyser,
 
 ## Verification
 
-Automated checks cover races, combat, staff restrictions, rewards, spawn, dragon rules and RTP border/landing rules. A successful build is not a claim that every behavior has been exercised by a Minecraft client. Version 3.17.0 passed 279 automated tests and the packaged SQLite check, and was loaded on the live Paper 1.21.11 server on September 28, 2026. Actual player-operated RTP, dragon encounters and visual effects still require in-game verification.
+Automated checks cover races, combat, staff restrictions, rewards, spawn, dragon rules and RTP border/landing rules. A successful build is not a claim that every behavior has been exercised by a Minecraft client. Version 3.17.1 passed 279 automated tests and the packaged SQLite check, and was loaded on the live Paper 1.21.11 server on September 28, 2026. Actual player-operated RTP, dragon encounters and visual effects still require in-game verification.
 
 ## Related projects
 
@@ -31,3 +31,5 @@ Automated checks cover races, combat, staff restrictions, rewards, spawn, dragon
 * [Integration profiles](https://github.com/aricutiee/Conquest-SMP-Integrations)
 
 Source attribution in existing packages is retained. Distribution rights for third-party assets and dependencies remain with their respective owners.
+
+Leaderboard rendering fix in 3.17.1: normal occlusion and front-facing heads, preserving all saved placements and styling.

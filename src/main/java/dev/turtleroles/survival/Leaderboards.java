@@ -147,7 +147,7 @@ public final class Leaderboards implements Listener, CommandExecutor, TabComplet
             for(int i=0;i<15;i++){
                 final float y=(14-i)*.30f;
                 TextDisplay display=anchor.getWorld().spawn(anchor,TextDisplay.class,e->{
-                    setup(e);e.setSeeThrough(true);e.setShadowed(true);e.setDefaultBackground(false);e.setBackgroundColor(Color.fromARGB(95,15,3,25));e.setLineWidth(500);
+                    setup(e);e.setSeeThrough(false);e.setShadowed(true);e.setDefaultBackground(false);e.setBackgroundColor(Color.fromARGB(95,15,3,25));e.setLineWidth(500);
                     e.setTransformationMatrix(new Matrix4f().translation(0,y,0));
                 });view.text.add(display);viewer.showEntity(plugin,display);
             }
@@ -155,7 +155,7 @@ public final class Leaderboards implements Listener, CommandExecutor, TabComplet
                 final float y=(11-i)*.30f+.10f;
                 ItemDisplay display=anchor.getWorld().spawn(anchor,ItemDisplay.class,e->{
                     setup(e);e.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.HEAD);
-                    e.setTransformationMatrix(new Matrix4f().translation(-2.7f,y,.02f).scale(.38f));
+                    e.setTransformationMatrix(new Matrix4f().translation(-2.7f,y,.02f).rotateY((float)Math.PI).scale(.38f));
                 });view.heads.add(display);viewer.showEntity(plugin,display);
             }
             return view;

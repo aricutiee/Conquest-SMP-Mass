@@ -1,6 +1,6 @@
 # Conquest SMP: player and staff guide
 
-Version 3.17.0 | Paper 1.21.11 | Author: ari
+Version 3.17.1 | Paper 1.21.11 | Author: ari
 
 This guide describes the implemented Conquest rules and the installed integrations. It supersedes older release notes where the rules changed. Timings and loot amounts below are the shipped settings unless identified otherwise. Administrators can change configuration, rewards and third-party permissions later.
 
@@ -275,7 +275,7 @@ Place a floating board at your position using one of these:
 * `/leaderboard set streaks`
 * `/leaderboard set playtime`
 
-Each type has one saved location; setting it again moves it. `/leaderboard remove <type>` removes it. The footer is near the administrator's feet and the rows extend upward. The default viewing distance is 24 blocks. Text faces each viewer and renders through players; the board does not follow a player around the world.
+Each type has one saved location; setting it again moves it. `/leaderboard remove <type>` removes it. The footer is near the administrator's feet and the rows extend upward. The default viewing distance is 24 blocks. Text faces each viewer and is hidden by intervening players and blocks; the board does not follow a player around the world.
 
 Boards show ten ranked entries and each viewer's own stat below. Kills, deaths and playtime use the same native records as the sidebar. Offline records import gradually after startup. Skin heads refresh when players join.
 
