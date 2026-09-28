@@ -69,10 +69,10 @@ commands:
     usage: /warlordevent [preview|retry|start <player>]
   warlord:
     description: Warlord Purge controls; end previews the animation without killing a player.
-    usage: /warlord [event|end|preview|start <player>]
+    usage: /warlord [animation|event|end|preview|start <player>]
   juggernaut:
     description: Designate a player with an automatic Juggernaut or Warlord loadout.
-    usage: /juggernaut [warlord] [player]
+    usage: /juggernaut animation or /juggernaut [warlord] [player]
   role:
     description: View and manage TurtleRoles roles.
     usage: /role

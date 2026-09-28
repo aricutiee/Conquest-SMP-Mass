@@ -1,6 +1,6 @@
 # Conquest SMP: player and staff guide
 
-Version 3.17.3 | Paper 1.21.11 | Author: ari
+Version 3.17.4 | Paper 1.21.11 | Author: ari
 
 This guide describes the implemented Conquest rules and the installed integrations. It supersedes older release notes where the rules changed. Timings and loot amounts below are the shipped settings unless identified otherwise. Administrators can change configuration, rewards and third-party permissions later.
 
@@ -313,3 +313,7 @@ Race balance lives in `races.yml`; combat and spear timers in `combat.yml`; boss
 Use the supported reload command where provided. For general code or configuration changes without a specific reload path, stop and restart normally. Keep one active Conquest JAR. Do not install standalone BiomeRaces alongside the combined plugin.
 
 The 3.17.0 build passed 279 automated tests with no failures or skips, plus its packaged SQLite check. Live checks are recorded separately. Automated checks and successful startup do not constitute a Minecraft-client playtest of visuals, two-player combat or all third-party interactions.
+
+## Death animation previews
+
+Admins can use `/juggernaut animation` and `/warlord animation` in game to preview the death sequences at their location. These do not kill anyone, end an event, start a hunt or issue rewards. Nearby players can see the visual effects.

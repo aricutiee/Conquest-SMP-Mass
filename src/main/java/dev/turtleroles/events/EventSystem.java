@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /** Shared administration, lifecycle and prizes for Conquest SMP events. */
-public final class EventSystem implements Listener, CommandExecutor {
+public final class EventSystem implements Listener, CommandExecutor, org.bukkit.command.TabCompleter {
     public enum State { IDLE, PREPARING, RUNNING, WON, ENDING }
     private record Pending(long expiresAt) {}
     private static final String[] IDS = {"egg", "capture", "crown", "mace", "assassins", "warlord", "pvp"};
@@ -141,6 +141,8 @@ public final class EventSystem implements Listener, CommandExecutor {
         plugin.getCommand("juggernaut").setExecutor(this);
         plugin.getCommand("warlordevent").setExecutor(this);
         plugin.getCommand("warlord").setExecutor(this);
+        plugin.getCommand("warlord").setTabCompleter(this);
+        plugin.getCommand("juggernaut").setTabCompleter(this);
         recoverState();
         pvpHour = new PvpHour(plugin, settings);
         Bukkit.getScheduler().runTaskTimer(plugin, this::expirePrompts, 20, 20);
@@ -153,7 +155,7 @@ public final class EventSystem implements Listener, CommandExecutor {
                 return juggernaut(sender,args.length>1?new String[]{"warlord",args[1]}:new String[]{"warlord"});
             if(args.length>0&&args[0].equalsIgnoreCase("retry")){purge.retry();sender.sendMessage("Retrying pending hunt locations.");return true;}
             if(!(sender instanceof Player player)){sender.sendMessage("Use the menu or animation preview in game.");return true;}
-            if(args.length>0&&(args[0].equalsIgnoreCase("end")||args[0].equalsIgnoreCase("preview")))purge.preview(player);
+            if(args.length>0&&(args[0].equalsIgnoreCase("end")||args[0].equalsIgnoreCase("preview")||args[0].equalsIgnoreCase("animation")))purge.preview(player);
             else purge.open(player);
             return true;
         }
@@ -222,7 +224,21 @@ public final class EventSystem implements Listener, CommandExecutor {
         return true;
     }
 
+    @Override public java.util.List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if(!canAdmin(sender,ADMIN))return java.util.List.of();
+        if(args.length==1)return (command.getName().equalsIgnoreCase("warlord")
+                ?java.util.stream.Stream.of("animation","event","end","preview","start","retry")
+                :java.util.stream.Stream.concat(java.util.stream.Stream.of("animation","warlord","restore"),Bukkit.getOnlinePlayers().stream().map(Player::getName)))
+                .filter(v->v.toLowerCase(java.util.Locale.ROOT).startsWith(args[0].toLowerCase(java.util.Locale.ROOT))).toList();
+        return java.util.List.of();
+    }
     private boolean juggernaut(CommandSender sender, String[] args) {
+        if(args.length>0&&args[0].equalsIgnoreCase("animation")) {
+            if(!canAdmin(sender,ADMIN)){sender.sendMessage("Event administration requires permission.");return true;}
+            if(sender instanceof Player player)maceRewards.preview(player);
+            else sender.sendMessage("Use /juggernaut animation in game.");
+            return true;
+        }
         if (!canAdmin(sender, "shocksmp.events.kit")) { sender.sendMessage("You cannot designate a Juggernaut."); return true; }
         if (args.length > 0 && args[0].equalsIgnoreCase("restore")) {
             if (sender instanceof Player player) kits.restorePending(player);

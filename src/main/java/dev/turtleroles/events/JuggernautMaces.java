@@ -38,6 +38,7 @@ final class JuggernautMaces implements Listener,AutoCloseable {
     private final YamlConfiguration data;
     private final BukkitTask task;
     private final Map<String,MaceRise> rises=new HashMap<>();
+    private final Map<UUID,MaceRise> previews=new HashMap<>();
     private boolean dirty;
     private int ticks;
     JuggernautMaces(JavaPlugin plugin,ShockMace factory,Predicate<ItemStack> activeKit) {
@@ -85,6 +86,14 @@ final class JuggernautMaces implements Listener,AutoCloseable {
         data.set(path+".item",prize);data.set(path+".ground-location",location);data.set(path+".ground-pending",true);
         if(!save()){data.set("events."+event,null);data.set(path,null);throw new IllegalStateException("Could not save the Juggernaut mace reward");}
         startRise(id);
+    }
+    void preview(Player player){
+        UUID id=player.getUniqueId();
+        if(previews.containsKey(id)){player.sendMessage("Your Juggernaut preview is already running.");return;}
+        MaceRise rise=new MaceRise(plugin,player.getLocation(),factory.create(),()->previews.remove(id),true);
+        previews.put(id,rise);
+        try{rise.start();player.sendMessage("Juggernaut animation preview only. No event ended and no reward created.");}
+        catch(RuntimeException failure){rise.close();throw failure;}
     }
     private void startRise(String id){
         String path="maces."+id;Location location=data.getLocation(path+".ground-location");ItemStack item=data.getItemStack(path+".item");
@@ -288,5 +297,5 @@ final class JuggernautMaces implements Listener,AutoCloseable {
     @EventHandler public void respawn(PlayerRespawnEvent event){Bukkit.getScheduler().runTask(plugin,()->{deliverPending(event.getPlayer());glow(event.getPlayer());});}
     @EventHandler public void quit(PlayerQuitEvent event){save();}
     private boolean save(){try{EventFiles.save(file,data);dirty=false;return true;}catch(IOException e){plugin.getLogger().severe("Cannot save Juggernaut maces: "+e.getMessage());return false;}}
-    public void close(){task.cancel();for(MaceRise rise:List.copyOf(rises.values()))rise.close();rises.clear();save();HandlerList.unregisterAll(this);}
+    public void close(){task.cancel();for(MaceRise preview:List.copyOf(previews.values()))preview.close();previews.clear();for(MaceRise rise:List.copyOf(rises.values()))rise.close();rises.clear();save();HandlerList.unregisterAll(this);}
 }
