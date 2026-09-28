@@ -39,8 +39,8 @@ final class JuggernautLoadout {
 
     static Map<String, Integer> armorSpecs(String piece) {
         Map<String, Integer> specs = new LinkedHashMap<>();
-        specs.put("protection", 5);
-        specs.put("unbreaking", 3);
+        specs.put("protection", piece.equals("helmet")||piece.equals("boots")?6:5);
+        specs.put("unbreaking", 4);
         specs.put("mending", 1);
         if (piece.equals("helmet")) { specs.put("respiration", 3); specs.put("aqua_affinity", 1); }
         if (piece.equals("leggings")) specs.put("swift_sneak", 3);
@@ -51,7 +51,7 @@ final class JuggernautLoadout {
     }
 
     static Map<String, Integer> swordSpecs() {
-        return Map.of("sharpness", 6, "unbreaking", 3, "mending", 1,
+        return Map.of("sharpness", 5, "unbreaking", 3, "mending", 1,
                 "fire_aspect", 2, "looting", 3, "sweeping_edge", 3);
     }
 
@@ -80,10 +80,11 @@ final class JuggernautLoadout {
         } else {
         for (String piece : List.of("boots", "leggings", "chestplate")) {
             ItemStack item = isWarlord ? warlord.armor(piece) : namedArmor(piece);
-            enchant(item, armorSpecs(piece), "juggernaut.enchantments.armor.");
+            enchant(item, armorSpecs(piece), "juggernaut.enchantments.armor-"+piece+".");
             Entry entry = new Entry(item, "armor_" + piece, true);
             armor.add(entry);
         }
+        enchant(crown,armorSpecs("helmet"),"juggernaut.enchantments.armor-helmet.");
         armor.add(new Entry(crown, "crown", true));
 
         ItemStack sword = isWarlord ? warlord.blade() : named(Material.NETHERITE_SWORD,

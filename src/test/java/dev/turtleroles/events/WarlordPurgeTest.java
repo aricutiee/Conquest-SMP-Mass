@@ -24,8 +24,8 @@ class WarlordPurgeTest {
     @Test void gearUsesFinalEnchantmentsAndSevenDistinctPieces(){
         assertEquals(7,WarlordRelics.PIECES.size());
         for(String piece:List.of("helmet","chestplate","leggings","boots"))
-            assertEquals(5,relics.create(piece).getEnchantmentLevel(Registry.ENCHANTMENT.get(NamespacedKey.minecraft("protection"))));
-        assertEquals(5,relics.create("sword").getEnchantmentLevel(Registry.ENCHANTMENT.get(NamespacedKey.minecraft("sharpness"))));
+            assertEquals(piece.equals("helmet")||piece.equals("boots")?6:5,relics.create(piece).getEnchantmentLevel(Registry.ENCHANTMENT.get(NamespacedKey.minecraft("protection"))));
+        assertEquals(6,relics.create("sword").getEnchantmentLevel(Registry.ENCHANTMENT.get(NamespacedKey.minecraft("sharpness"))));
         var pick=relics.create("pickaxe");assertTrue(pick.getItemMeta().isUnbreakable());
         assertEquals(5,pick.getEnchantmentLevel(Registry.ENCHANTMENT.get(NamespacedKey.minecraft("efficiency"))));
         assertEquals(3,pick.getEnchantmentLevel(Registry.ENCHANTMENT.get(NamespacedKey.minecraft("fortune"))));

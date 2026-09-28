@@ -41,7 +41,7 @@ juggernaut:
   enchantments:
     armor:
       protection: 5
-      unbreaking: 3
+      unbreaking: 4
       mending: 1
       respiration: 3
       aqua_affinity: 1
@@ -50,7 +50,7 @@ juggernaut:
       depth_strider: 3
       soul_speed: 3
     sword:
-      sharpness: 6
+      sharpness: 5
       unbreaking: 3
       mending: 1
       fire_aspect: 2
@@ -93,10 +93,10 @@ warlord-purge:
   minimum-radius: 500
   maximum-radius: 1500
   enchantments:
-    helmet: {protection: 5}
-    chestplate: {protection: 5}
-    leggings: {protection: 5}
-    boots: {protection: 5}
-    sword: {sharpness: 5}
+    helmet: {protection: 6, unbreaking: 4}
+    chestplate: {protection: 5, unbreaking: 4}
+    leggings: {protection: 5, unbreaking: 4}
+    boots: {protection: 6, unbreaking: 4}
+    sword: {sharpness: 6}
     axe: {sharpness: 5, efficiency: 5}
     pickaxe: {efficiency: 5, fortune: 3}

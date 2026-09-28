@@ -37,6 +37,7 @@ final class JuggernautMaces implements Listener,AutoCloseable {
     private final File file;
     private final YamlConfiguration data;
     private final BukkitTask task;
+    private final Map<String,MaceRise> rises=new HashMap<>();
     private boolean dirty;
     private int ticks;
     JuggernautMaces(JavaPlugin plugin,ShockMace factory,Predicate<ItemStack> activeKit) {
@@ -50,6 +51,8 @@ final class JuggernautMaces implements Listener,AutoCloseable {
         Bukkit.getScheduler().runTask(plugin,()->{
             for(World world:Bukkit.getWorlds())for(Chunk chunk:world.getLoadedChunks())inspect(chunk);
             Bukkit.getOnlinePlayers().forEach(this::deliverPending);
+            var all=data.getConfigurationSection("maces");
+            if(all!=null)for(String id:all.getKeys(false))if(data.getBoolean("maces."+id+".ground-pending")&&!data.getBoolean("maces."+id+".ground-dropping"))startRise(id);
         });
     }
     static long glowDeadline(long awardedAt){return Math.addExact(awardedAt,180_000L);}
@@ -72,6 +75,35 @@ final class JuggernautMaces implements Listener,AutoCloseable {
         return false;
     }
     boolean permitted(ItemStack item){return item==null||item.getType()!=Material.MACE||earned(item)||activeKit.test(item);}
+    void dropAnimated(UUID event,Location location){
+        if(event==null||data.contains("events."+event))return;
+        ItemStack prize=factory.create();String id=token(prize);
+        var meta=prize.getItemMeta();meta.getPersistentDataContainer().set(ISSUED,PersistentDataType.BYTE,(byte)1);
+        meta.getPersistentDataContainer().set(EVENT,PersistentDataType.STRING,event.toString());prize.setItemMeta(meta);
+        String path="maces."+id;
+        data.set("events."+event,id);data.set(path+".event",event.toString());data.set(path+".expires",0L);
+        data.set(path+".item",prize);data.set(path+".ground-location",location);data.set(path+".ground-pending",true);
+        if(!save()){data.set("events."+event,null);data.set(path,null);throw new IllegalStateException("Could not save the Juggernaut mace reward");}
+        startRise(id);
+    }
+    private void startRise(String id){
+        String path="maces."+id;Location location=data.getLocation(path+".ground-location");ItemStack item=data.getItemStack(path+".item");
+        if(location==null||location.getWorld()==null||item==null||rises.containsKey(id))return;
+        MaceRise rise=new MaceRise(plugin,location,item,()->releaseGround(id));rises.put(id,rise);
+        try{rise.start();}catch(RuntimeException failure){plugin.getLogger().warning("Mace animation failed; releasing saved reward: "+failure.getMessage());rise.close();}
+    }
+    private void releaseGround(String id){
+        rises.remove(id);String path="maces."+id;
+        if(!data.getBoolean(path+".ground-pending")||data.getBoolean(path+".ground-dropping"))return;
+        Location location=data.getLocation(path+".ground-location");ItemStack item=data.getItemStack(path+".item");
+        if(location==null||location.getWorld()==null||item==null)return;
+        data.set(path+".ground-dropping",true);data.set(path+".expires",glowDeadline(clock.getAsLong()));
+        if(!save()){data.set(path+".ground-dropping",false);return;}
+        // Persist a transfer marker before materializing, avoiding duplicate prizes after a crash.
+        Item drop=location.getWorld().dropItem(location.clone().add(0,1,0),item.clone());drop.setGlowing(true);drop.setInvulnerable(true);drop.setPickupDelay(10);
+        data.set(path+".ground-pending",false);data.set(path+".ground-dropping",false);data.set(path+".item",null);save();
+        Bukkit.broadcast(Component.text("The Juggernaut's Mace has fallen! Anyone can claim it.",NamedTextColor.LIGHT_PURPLE));
+    }
     void award(UUID event,DamageRanking.Entry winner,Location deathLocation) {
         if(event==null||data.contains("events."+event))return;
         ItemStack prize=factory.create();String id=token(prize);
@@ -256,5 +288,5 @@ final class JuggernautMaces implements Listener,AutoCloseable {
     @EventHandler public void respawn(PlayerRespawnEvent event){Bukkit.getScheduler().runTask(plugin,()->{deliverPending(event.getPlayer());glow(event.getPlayer());});}
     @EventHandler public void quit(PlayerQuitEvent event){save();}
     private boolean save(){try{EventFiles.save(file,data);dirty=false;return true;}catch(IOException e){plugin.getLogger().severe("Cannot save Juggernaut maces: "+e.getMessage());return false;}}
-    public void close(){task.cancel();save();HandlerList.unregisterAll(this);}
+    public void close(){task.cancel();for(MaceRise rise:List.copyOf(rises.values()))rise.close();rises.clear();save();HandlerList.unregisterAll(this);}
 }

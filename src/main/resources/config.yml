@@ -73,3 +73,9 @@ spawn-barrier:
 ender-dragon:
   # Vanilla 200 health becomes 1000. Existing health fractions survive adoption/restart.
   health-multiplier: 5.0
+
+leaderboards:
+  view-distance: 24
+weapon-damage-caps:
+  spear: 0.70
+  mace: 0.99

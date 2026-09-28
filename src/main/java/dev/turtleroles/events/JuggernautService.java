@@ -248,7 +248,7 @@ public final class JuggernautService implements Listener {
             String instance = item.getItemMeta().getPersistentDataContainer().get(instanceKey, PersistentDataType.STRING);
             if (instance != null) rewards.putIfAbsent(instance, item);
         }
-        death.getDrops().removeIf(this::isLoadoutItem);
+        if(warlord)death.getDrops().removeIf(this::isLoadoutItem);else death.getDrops().clear();
         Enchantment vanishing = Registry.ENCHANTMENT.get(NamespacedKey.minecraft("vanishing_curse"));
         Map<String,ItemStack> scattered = new LinkedHashMap<>();
         for (ItemStack item : rewards.values()) {
@@ -257,11 +257,9 @@ public final class JuggernautService implements Listener {
                 if(WarlordRelics.PIECES.contains(piece))scattered.put(piece,issue(item));
                 continue;
             }
-            if(item.getType()==Material.MACE)continue; // Awarded once to the damage leader instead.
-            if (vanishing != null && item.containsEnchantment(vanishing)) continue;
-            death.getDrops().add(issue(item));
+            // All Juggernaut kit items are temporary. Only the separate animated mace is a prize.
         }
-        if (data.getBoolean("active.borrowed-crown")) removeOneOriginalCrown();
+        if (warlord && data.getBoolean("active.borrowed-crown")) removeOneOriginalCrown();
         if(warlord)purgeReward.accept(player.getLocation(),scattered);
         else defeatReward.accept(player.getLocation());
         designated = false;
@@ -524,11 +522,26 @@ public final class JuggernautService implements Listener {
                 .anyMatch(this::isLoadoutItem)) event.setCancelled(true);
     }
 
+    private void rebalanceActiveKit(Player player){
+        for(int slot=0;slot<player.getInventory().getSize();slot++){
+            ItemStack item=player.getInventory().getItem(slot);
+            if(!isLoadoutItem(item))continue;String itemKind=kind(item);if(itemKind==null)continue;
+            if(itemKind.contains("armor_")||itemKind.endsWith(":crown")){
+                int protection=itemKind.endsWith("helmet")||itemKind.endsWith("boots")||itemKind.endsWith(":crown")?6:5;
+                item.addUnsafeEnchantment(Enchantment.PROTECTION,protection);
+                item.addUnsafeEnchantment(Enchantment.UNBREAKING,4);
+            }else if(item.getType()==Material.NETHERITE_SWORD)item.addUnsafeEnchantment(Enchantment.SHARPNESS,warlord?6:5);
+            if(warlord&&item.getType()==Material.MACE)item=null;
+            player.getInventory().setItem(slot,item);
+        }
+    }
+
     @EventHandler public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (isActive(player)) {
             player.getPersistentDataContainer().set(activeKey, PersistentDataType.BYTE, (byte) 1);
             if (warlord) player.getPersistentDataContainer().set(warlordActiveKey, PersistentDataType.BYTE, (byte) 1);
+            rebalanceActiveKit(player);
             player.setGlowing(true);
         } else {
             player.getPersistentDataContainer().remove(activeKey);

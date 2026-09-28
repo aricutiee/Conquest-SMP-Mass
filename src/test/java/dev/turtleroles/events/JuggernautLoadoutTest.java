@@ -8,8 +8,8 @@ class JuggernautLoadoutTest {
     @Test void armorContainsSpecifiedEnchantsAndNoThorns() {
         for (String piece : new String[]{"helmet", "chestplate", "leggings", "boots"}) {
             var enchants = JuggernautLoadout.armorSpecs(piece);
-            assertEquals(5, enchants.get("protection"));
-            assertEquals(3, enchants.get("unbreaking"));
+            assertEquals(piece.equals("helmet")||piece.equals("boots")?6:5, enchants.get("protection"));
+            assertEquals(4, enchants.get("unbreaking"));
             assertEquals(1, enchants.get("mending"));
             assertFalse(enchants.containsKey("thorns"));
         }
@@ -23,7 +23,7 @@ class JuggernautLoadoutTest {
 
     @Test void toolsAndWeaponsMatchRequirements() {
         var sword = JuggernautLoadout.swordSpecs();
-        assertEquals(6, sword.get("sharpness"));
+        assertEquals(5, sword.get("sharpness"));
         assertEquals(2, sword.get("fire_aspect"));
         assertEquals(3, sword.get("looting"));
         assertEquals(3, sword.get("sweeping_edge"));

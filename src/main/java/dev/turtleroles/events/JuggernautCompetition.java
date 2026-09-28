@@ -52,9 +52,7 @@ final class JuggernautCompetition implements Listener,AutoCloseable {
     }
     void defeated(Location location) {
         ensureRun();
-        var leaders=ranking.top(1);
-        if(leaders.isEmpty())Bukkit.broadcast(Component.text("The Juggernaut fell without player damage. No mace was awarded.",NamedTextColor.YELLOW));
-        else maces.award(run,leaders.getFirst(),location);
+        maces.dropAnimated(run,location);
         save();clearBoards();
     }
     private void tick() {

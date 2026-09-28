@@ -34,9 +34,9 @@ final class WarlordRelics implements Listener {
         meta.displayName(Component.text(name,NamedTextColor.LIGHT_PURPLE));
         meta.getPersistentDataContainer().set(PIECE,PersistentDataType.STRING,piece);
         meta.getPersistentDataContainer().set(INSTANCE,PersistentDataType.STRING,UUID.randomUUID().toString());
-        Map<String,Integer> specs=PIECES.indexOf(piece)<4?Map.of("protection",5,"unbreaking",3,"mending",1)
+        Map<String,Integer> specs=PIECES.indexOf(piece)<4?Map.of("protection",piece.equals("helmet")||piece.equals("boots")?6:5,"unbreaking",4,"mending",1)
             :piece.equals("pickaxe")?Map.of("efficiency",5,"fortune",3)
-            :piece.equals("sword")?Map.of("sharpness",5,"unbreaking",3,"mending",1)
+            :piece.equals("sword")?Map.of("sharpness",6,"unbreaking",3,"mending",1)
             :Map.of("sharpness",5,"efficiency",5,"unbreaking",3,"mending",1);
         for(var enchant:specs.entrySet()) {
             var type=Registry.ENCHANTMENT.get(NamespacedKey.minecraft(enchant.getKey()));

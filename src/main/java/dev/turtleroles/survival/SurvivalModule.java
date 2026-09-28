@@ -203,12 +203,14 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
         Bukkit.getScheduler().runTask(plugin,()-> { if(player.isOnline() && !allowed(player,player.getWorld())) teleport(player,spawn(),false); });
     }
     @EventHandler public void quit(PlayerQuitEvent event) { sidebar.remove(event.getPlayer()); teleporting.remove(event.getPlayer().getUniqueId()); }
-    @EventHandler(priority=EventPriority.MONITOR)
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void died(PlayerDeathEvent event) {
+        Leaderboards.endStreak(event.getEntity());
         event.getEntity().getPersistentDataContainer().set(streak,PersistentDataType.INTEGER,0);
         Player killer=event.getEntity().getKiller();
         if(killer!=null && killer!=event.getEntity()) killer.getPersistentDataContainer().set(streak,PersistentDataType.INTEGER,
                 killer.getPersistentDataContainer().getOrDefault(streak,PersistentDataType.INTEGER,0)+1);
+        if(killer!=null&&killer!=event.getEntity()){Leaderboards.rememberBest(killer);Leaderboards.announceStreak(killer);}
     }
     private static final class DimensionMenu implements InventoryHolder {
         Inventory inventory;

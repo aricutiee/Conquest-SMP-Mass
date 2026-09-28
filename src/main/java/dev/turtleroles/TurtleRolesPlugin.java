@@ -40,6 +40,7 @@ import java.util.logging.Level;
 public final class TurtleRolesPlugin extends AriServerUtil {
     private dev.biomeraces.RaceModule races;
     private dev.turtleroles.survival.ConquestDragon dragons;
+    private dev.turtleroles.survival.Leaderboards leaderboards;
     private dev.turtleroles.combat.ConquestCombat combat;
     private dev.turtleroles.survival.SurvivalModule survival;
     private dev.turtleroles.events.LootDrops lootDrops;
@@ -183,6 +184,8 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         survival.start();
         dragons=new dev.turtleroles.survival.ConquestDragon(this);
         dragons.start();
+        leaderboards=new dev.turtleroles.survival.Leaderboards(this);
+        leaderboards.start();
         lootDrops = new dev.turtleroles.events.LootDrops(this);
         lootDrops.start();
         deathChests = new dev.turtleroles.survival.DeathChests(this);
@@ -195,6 +198,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         if (!races.enable()) return;
         anticheat = new dev.turtleroles.anticheat.ConquestGrimIntegration(this);
         anticheat.start();
+        getServer().getPluginManager().registerEvents(new dev.turtleroles.combat.WeaponDamageCaps(this),this);
         roles.reconcileOnlineOps();
         getServer().getOnlinePlayers().forEach(packs::sendOnJoin);
         getLogger().info("Conquest SMP enabled: roles, badges, moderation and ServerUtil administration are running in one plugin.");
@@ -230,6 +234,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         if (boosterKits != null) boosterKits.close();
         if (packs != null) packs.close();
         if (combat != null) combat.close();
+        if (leaderboards != null) leaderboards.close();
         if (dragons != null) dragons.close();
         if (lootDrops != null) lootDrops.close();
         if (survival != null) survival.close();

@@ -10,7 +10,7 @@ Run `./gradlew build` (Windows: `gradlew.bat build`). The shaded plugin JAR is w
 
 Integrated biome races and Dragonborn, staff roles and hierarchy, editable Booster kits, homes, 54-slot ender chests, death chests, combat tags, event rewards, Warlord hunt, Juggernaut competition, loot drops, selected spawn protection, SMP launch controls, dimension controls, resource-pack badges, tab logo and scoreboard.
 
-The latest update adds private combat boundary glass, outward knockback, a 1,000-health Ender Dragon with explosion protection and perched melee combat, dimension titles and sounds, and safe `/rtp` exclusively in `world_terralith` within its current border.
+The latest update adds four floating top-ten leaderboards, completed/active streak records, revised boss armor with Unbreaking IV, a public animated Juggernaut mace reward, and final spear/mace damage caps of 70%/99% of victim maximum health. See [the full server guide](SERVER-GUIDE.md) for player commands, events, races, staff roles and permissions.
 
 ## Installation
 
@@ -20,7 +20,7 @@ King's Crown remains a separate optional integration. GrimAC, Floodgate, Geyser,
 
 ## Verification
 
-Automated checks cover races, combat, staff restrictions, rewards, spawn, dragon rules and RTP border/landing rules. A successful build is not a claim that every behavior has been exercised by a Minecraft client. Version 3.16.0 passed 271 automated tests and the packaged SQLite check, and was loaded on the live Paper 1.21.11 server on September 28, 2026. Actual player-operated RTP, dragon encounters and visual effects still require in-game verification.
+Automated checks cover races, combat, staff restrictions, rewards, spawn, dragon rules and RTP border/landing rules. A successful build is not a claim that every behavior has been exercised by a Minecraft client. Version 3.17.0 passed 279 automated tests and the packaged SQLite check, and was loaded on the live Paper 1.21.11 server on September 28, 2026. Actual player-operated RTP, dragon encounters and visual effects still require in-game verification.
 
 ## Related projects
 

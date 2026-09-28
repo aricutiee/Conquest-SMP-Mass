@@ -90,6 +90,26 @@ public final class EventSystem implements Listener, CommandExecutor {
         settingsFile = new File(plugin.getDataFolder(), "events.yml");
         if (!settingsFile.exists()) plugin.saveResource("events.yml", false);
         settings = YamlConfiguration.loadConfiguration(settingsFile);
+        if(!settings.getBoolean("armor-unbreaking-4-applied",false)){
+            for(String piece:java.util.List.of("helmet","chestplate","leggings","boots")){
+                settings.set("juggernaut.enchantments.armor-"+piece+".unbreaking",4);
+                settings.set("warlord-purge.enchantments."+piece+".unbreaking",4);
+            }
+            settings.set("armor-unbreaking-4-applied",true);
+            try{EventFiles.save(settingsFile,settings);}catch(java.io.IOException ex){throw new IllegalStateException("Could not save armor balance",ex);}
+        }
+        if(!settings.getBoolean("balance-3-17-applied",false)){
+            for(String piece:List.of("helmet","boots","chestplate","leggings")){
+                int protection=piece.equals("helmet")||piece.equals("boots")?6:5;
+                settings.set("juggernaut.enchantments.armor-"+piece+".protection",protection);
+                settings.set("warlord-purge.enchantments."+piece+".protection",protection);
+            }
+            settings.set("juggernaut.enchantments.sword.sharpness",5);
+            settings.set("warlord-purge.enchantments.sword.sharpness",6);
+            settings.set("balance-3-17-applied",true);
+            try{EventFiles.save(settingsFile,settings);}catch(java.io.IOException ex){throw new IllegalStateException("Could not save event balance update",ex);}
+        }
+
         rewardsFile = new File(plugin.getDataFolder(), "event-rewards.yml");
         rewards = YamlConfiguration.loadConfiguration(rewardsFile);
         stateFile = new File(plugin.getDataFolder(), "event-state.yml");
@@ -297,7 +317,7 @@ public final class EventSystem implements Listener, CommandExecutor {
         saveState();
         String announcement = switch (id) {
             case "crown" -> "The King's Crown Race has begun! Designate a player with /juggernaut <player> or /juggernaut warlord <player>.";
-            case "mace" -> "The Juggernaut Mace event has begun! Use /juggernaut <player>. The top damage dealer earns the mace.";
+            case "mace" -> "The Juggernaut Mace event has begun! Use /juggernaut <player>. The mace rises, shakes and drops publicly when the Juggernaut is defeated.";
             case "blade", "armor", "warlord" -> title(id) + " has begun! Use /juggernaut warlord <player> for an automatic loadout.";
             default -> title(id) + " has begun!";
         };
@@ -325,7 +345,7 @@ public final class EventSystem implements Listener, CommandExecutor {
     }
 
     private void winner(CommandSender sender, String name) {
-        if(kits.hasDesignation()||"mace".equals(active)||"warlord".equals(active)){sender.sendMessage("The Juggernaut mace is awarded automatically to the damage leader when the boss dies.");return;}
+        if(kits.hasDesignation()||"mace".equals(active)||"warlord".equals(active)){sender.sendMessage("The Juggernaut mace rises into the sky and drops publicly when the boss dies.");return;}
         if (state != State.RUNNING || active == null || active.equals("egg") || active.equals("assassins")) {
             sender.sendMessage("Use /events winner only for an active manual race or trial."); return;
         }
@@ -376,7 +396,7 @@ public final class EventSystem implements Listener, CommandExecutor {
             }
             event.setCancelled(true);
             if (slot == 0 && holder.event.equals("mace") && canAdmin(event.getWhoClicked(), "shocksmp.events.reward")) {
-                event.getWhoClicked().sendMessage("The Juggernaut mace is awarded automatically to the damage leader.");
+                event.getWhoClicked().sendMessage("The Juggernaut mace drops publicly after its defeat animation.");
                 return;
             }
             if (slot == 4 && (event.getClick() == ClickType.LEFT || event.getClick() == ClickType.RIGHT)) {
@@ -537,7 +557,7 @@ public final class EventSystem implements Listener, CommandExecutor {
             case "egg" -> "Explore to find outdoor eggs for points";
             case "capture" -> "Awaiting gameplay setup";
             case "crown" -> "Fight the equipped Juggernaut for the crown";
-            case "mace" -> "Defeat the Juggernaut; highest damage wins the mace";
+            case "mace" -> "Defeat the Juggernaut and claim its fallen mace";
             case "assassins" -> "Enroll, hunt assigned targets, survive";
             case "blade", "armor", "warlord" -> "Defeat the Warlord, then hunt seven scattered relics";
             default -> "";

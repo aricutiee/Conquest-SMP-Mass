@@ -8,6 +8,10 @@ description: Conquest SMP races, utilities, events, TurtleRoles and KingsCrown i
 softdepend: [KingsCrown, GrimAC, floodgate, AuthMe, Essentials, EssentialsSpawn]
 
 commands:
+  leaderboard:
+    description: Place or remove a floating top-ten leaderboard.
+    usage: /leaderboard <set|remove> <kills|deaths|streaks|playtime>
+    permission: conquest.leaderboard.admin
   rtp:
     description: Random safe teleport within the Terralith Overworld border.
     usage: /rtp
@@ -135,6 +139,9 @@ commands:
     permission: serverutil.staffchat
 
 permissions:
+  conquest.leaderboard.admin:
+    default: op
+    description: Place and remove leaderboard displays.
   conquestsmp.launch: {default: op}
   conquest.world.admin: {default: op}
   conquest.anticheat.status: {default: op}
