@@ -120,11 +120,11 @@ public final class Leaderboards implements Listener, CommandExecutor, TabComplet
     }
     static Component streakRow(int index,StreakEntry entry){
         if(entry==null)return row(index,null,Metric.streaks);
-        return Component.text("#"+(index+1)+"  "+entry.player.name+"  •  "+entry.value+(entry.active?"  LIVE":"  RECORD"),TextColor.color(entry.active?0xB477FF:0x96919C));
+        return Component.text("#"+(index+1)+"      "+entry.player.name+"  •  "+entry.value+(entry.active?"  LIVE":"  RECORD"),TextColor.color(entry.active?0xB477FF:0x96919C));
     }
     static String value(Metric m,long value){return m==Metric.playtime?SurvivalSidebar.duration(value):Long.toString(value);}
     static Component row(int index,Stats stats,Metric m){
-        Component rank=Component.text("#"+(index+1)+"  ",index<3?PINK:PURPLE);
+        Component rank=Component.text("#"+(index+1)+"      ",index<3?PINK:PURPLE);
         return rank.append(Component.text(stats==null?"Waiting for players":stats.name,LIGHT)).append(Component.text("  •  ",PURPLE)).append(Component.text(stats==null?"0":value(m,stats.value(m)),PINK));
     }
     static Component personal(Stats stats,Metric m){if(m==Metric.streaks)return Component.text("YOUR STREAK: "+(stats==null?0:stats.active)+"  •  BEST: "+(stats==null?0:Math.max(stats.active,stats.streaks)),LIGHT);return Component.text("YOUR "+(m==Metric.streaks?"BEST STREAK":m.name().toUpperCase(Locale.ROOT))+": ",LIGHT).append(Component.text(value(m,stats==null?0:stats.value(m)),PINK));}
@@ -135,7 +135,12 @@ public final class Leaderboards implements Listener, CommandExecutor, TabComplet
         List<StreakEntry> streakTop=m==Metric.streaks?rankStreaks(stats.values()):List.of();
         for(int i=0;i<10;i++){
             StreakEntry entry=i<streakTop.size()?streakTop.get(i):null;
-            Stats s=m==Metric.streaks?(entry==null?null:entry.player):(i<top.size()?top.get(i):null);set(view.text.get(i+3),m==Metric.streaks?streakRow(i,entry):row(i,s,m));ItemStack desired=s==null?new ItemStack(Material.AIR):head(s);
+            Stats s=m==Metric.streaks?(entry==null?null:entry.player):(i<top.size()?top.get(i):null);
+            Component line=m==Metric.streaks?streakRow(i,entry):row(i,s,m);set(view.text.get(i+3),line);
+            String plain=net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line);
+            float x=-fontWidth(plain)*.0125f+(fontWidth("#"+(i+1)+"  ")+8)*.025f;
+            view.heads.get(i).setTransformationMatrix(faceTransform(x,(11-i)*.30f+.10f));
+            ItemStack desired=s==null?new ItemStack(Material.AIR):head(s);
             if(!view.heads.get(i).getItemStack().equals(desired))view.heads.get(i).setItemStack(desired);
         }
         set(view.text.get(14),personal(personal,m));
@@ -155,11 +160,23 @@ public final class Leaderboards implements Listener, CommandExecutor, TabComplet
                 final float y=(11-i)*.30f+.10f;
                 ItemDisplay display=anchor.getWorld().spawn(anchor,ItemDisplay.class,e->{
                     setup(e);e.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.HEAD);
-                    e.setTransformationMatrix(new Matrix4f().translation(-2.7f,y,.02f).rotateY((float)Math.PI).scale(.38f));
+                    e.setTransformationMatrix(faceTransform(0,y));
                 });view.heads.add(display);viewer.showEntity(plugin,display);
             }
             return view;
         }catch(RuntimeException e){view.remove();throw e;}
+    }
+    // TextDisplay's default font uses 0.025 world units per font pixel.
+    // Reserve four spaces inside each row, directly between the rank and name.
+    static int fontWidth(String text){
+        int width=0;for(int c:text.codePoints().toArray())width+=switch(c){
+            case ' '->4;case 'i','!', '.',',',':',';','|','\''->2;
+            case 'l','`'->3;case 'I','t','[',']'->4;case 'f','k','(',')','{','}','<' ,'>'->5;case '@','~'->7;default->6;
+        };return width;
+    }
+    static Matrix4f faceTransform(float x,float y){
+        // Compress depth without changing the skin/profile or front-facing orientation.
+        return new Matrix4f().translation(x,y,.02f).rotateY((float)Math.PI).scale(.38f,.38f,.0001f);
     }
     private static void setup(Display e){
         e.setVisibleByDefault(false);e.setPersistent(false);e.setInvulnerable(true);e.setGravity(false);

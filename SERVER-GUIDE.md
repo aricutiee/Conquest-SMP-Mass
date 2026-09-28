@@ -1,12 +1,12 @@
 # Conquest SMP: player and staff guide
 
-Version 3.17.1 | Paper 1.21.11 | Author: ari
+Version 3.17.2 | Paper 1.21.11 | Author: ari
 
 This guide describes the implemented Conquest rules and the installed integrations. It supersedes older release notes where the rules changed. Timings and loot amounts below are the shipped settings unless identified otherwise. Administrators can change configuration, rewards and third-party permissions later.
 
 ## 1. Starting out
 
-Conquest SMP is a survival and PvP server with a Terralith overworld, automatic races, public event rewards and staff-run events. Ordinary players use diamond armor or weaker. Netherite tools and weapons are allowed, but netherite armor is reserved for designated bosses, with the senior staff exceptions described below.
+Conquest SMP is a survival and PvP server with a Terralith overworld, Amplified Nether terrain with Dungeons and Taverns Nether Fortress Overhaul, Nullscape End terrain, automatic races, public event rewards and staff-run events. Ordinary players use diamond armor or weaker. Netherite tools and weapons are allowed, but netherite armor is reserved for designated bosses, with the senior staff exceptions described below.
 
 New players receive a five-second race roll. Names cycle quickly, then slow down, with a note sound on each change and an Ender Dragon growl at the reveal. The result is saved. Leaving during the roll does not give another chance: the same saved draw resumes. Existing players do not reroll on every login.
 
@@ -277,7 +277,7 @@ Place a floating board at your position using one of these:
 
 Each type has one saved location; setting it again moves it. `/leaderboard remove <type>` removes it. The footer is near the administrator's feet and the rows extend upward. The default viewing distance is 24 blocks. Text faces each viewer and is hidden by intervening players and blocks; the board does not follow a player around the world.
 
-Boards show ten ranked entries and each viewer's own stat below. Kills, deaths and playtime use the same native records as the sidebar. Offline records import gradually after startup. Skin heads refresh when players join.
+Boards show ten ranked entries and each viewer's own stat below. Kills, deaths and playtime use the same native records as the sidebar. Offline records import gradually after startup. Flat skin portraits sit beside player names and refresh when players join.
 
 Streaks show the highest completed run in gray and a current active run in purple. The same player can occupy two rows: for example, a completed 50 and an active 30. If 30 ends, it disappears and 50 remains. A completed 60 replaces the old completed 50. Every ten kills produces a milestone announcement. Old completed streaks cannot be recovered if the prior version already reset them before record tracking existed.
 
