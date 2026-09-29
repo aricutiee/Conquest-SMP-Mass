@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "dev.turtleroles"
-version = "3.21.1"
+version = "3.21.2"
 
 java {
     toolchain {
