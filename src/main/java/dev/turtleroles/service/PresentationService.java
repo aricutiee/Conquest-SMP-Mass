@@ -117,7 +117,7 @@ public final class PresentationService {
                 .append(Component.text("]", TextColor.color(0x5BCEFA)));
         }
         TextColor color = switch (role) {
-            case CO_OWNER -> TextColor.color(0x3E9161);
+            case CO_OWNER -> TextColor.color(0x650B1B);
             case SR_ADMIN -> TextColor.color(0xC8CED8);
             case ADMIN -> TextColor.color(0xBD2142);
             case MODERATOR -> TextColor.color(0x41CE70);

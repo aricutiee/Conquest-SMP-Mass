@@ -21,7 +21,7 @@ import java.util.zip.ZipOutputStream;
 public final class BadgeAssetGenerator {
     private static final List<RoleArt> ROLES = List.of(
         new RoleArt("owner", "OWNER", 0xE001, "owner.png", new int[]{0x5BCEFA, 0xF5A9B8, 0xFFFFFF, 0xF5A9B8, 0x5BCEFA}, false),
-        new RoleArt("co_owner", "CO-OWNER", 0xE002, "co_owner.png", new int[]{0x164B35, 0x3E9161, 0xA8CA7B}, true),
+        new RoleArt("co_owner", "CO-OWNER", 0xE002, "co_owner.png", new int[]{0x380610, 0x650B1B, 0x8A162A}, false),
         new RoleArt("sr_admin", "SR ADMIN", 0xE003, "sr_admin.png", new int[]{0x080A0D, 0x242830, 0x8E98A6}, false),
         new RoleArt("admin", "ADMIN", 0xE004, "admin.png", new int[]{0x650E24, 0x8B1234, 0xBD2142}, false),
         new RoleArt("sser", "SSER", 0xE00A, "sser.png", new int[]{0x5BCEFA, 0xF5A9B8, 0xFFFFFF, 0xF5A9B8, 0x5BCEFA}, false),
@@ -179,7 +179,7 @@ public final class BadgeAssetGenerator {
         int width = (role.id.equals("king") ? 23 : textWidth(role.label)) + iconWidth + 4;
         BufferedImage image = new BufferedImage(width, 8, BufferedImage.TYPE_INT_ARGB);
         int background = switch (role.id) {
-            case "co_owner" -> 0x159E72;
+            case "co_owner" -> 0x650B1B;
             case "sr_admin" -> 0x15171C;
             case "admin" -> 0xD32149;
             case "moderator" -> 0x168D42;

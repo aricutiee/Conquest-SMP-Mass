@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 public enum Role {
     OWNER("owner", "OWNER", 700, "\uE001", "owner.png", new String[]{"#5BCEFA", "#F5A9B8", "#FFFFFF", "#F5A9B8", "#5BCEFA"}),
-    CO_OWNER("co_owner", "CO-OWNER", 600, "\uE002", "co_owner.png", new String[]{"#164B35", "#3E9161", "#A8CA7B"}),
+    CO_OWNER("co_owner", "CO-OWNER", 600, "\uE002", "co_owner.png", new String[]{"#380610", "#650B1B", "#8A162A"}),
     SR_ADMIN("sr_admin", "SR ADMIN", 500, "\uE003", "sr_admin.png", new String[]{"#080A0D", "#242830", "#8E98A6"}),
     ADMIN("admin", "ADMIN", 400, "\uE004", "admin.png", new String[]{"#650E24", "#8B1234", "#BD2142"}),
     SSER("sser", "SSER", 350, "\uE00A", "sser.png", new String[]{"#5BCEFA", "#F5A9B8", "#FFFFFF", "#F5A9B8", "#5BCEFA"}),
