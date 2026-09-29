@@ -5,12 +5,16 @@ api-version: '1.21.11'
 load: POSTWORLD
 authors: [ari]
 description: Conquest SMP races, utilities, events, TurtleRoles and KingsCrown integration.
-softdepend: [KingsCrown, GrimAC, floodgate, AuthMe, Essentials, EssentialsSpawn, packetevents]
+softdepend: [KingsCrown, GrimAC, AltDetector, ClientPolicy, floodgate, AuthMe, Essentials, EssentialsSpawn, packetevents]
 
 commands:
+  string:
+    description: Fill empty inventory slots with string, with rank-based cooldowns.
+    usage: /string
+    permission: stringplugin.use
   npc:
     description: Place and edit Conquest service NPCs and shop offers.
-    usage: /npc set|edit|remove <utilities|discord|races|rtp|reroll>
+    usage: /npc set|edit|remove <utilities|discord|races|rtp|reroll|spawners>
   afk:
     description: Select the two corners of the shard-earning AFK zone.
     usage: /afk [off|cancel]
@@ -63,7 +67,7 @@ commands:
     description: Open the administrator Nether and End access controls.
   conquestac:
     description: Show the Grim integration and non-punitive policy status.
-    usage: /conquestac
+    usage: /conquestac [inspect|alts|client <player>]
     permission: conquest.anticheat.status
   race:
     description: View your race or start your saved first-join roll.
@@ -240,3 +244,11 @@ permissions:
   serverutil.performance.cleanup: {default: op}
   serverutil.audit: {default: op}
   serverutil.audit.export: {default: op}
+
+  conquest.anticheat.alerts:
+    description: Receive combined alt and client policy staff notifications.
+    default: op
+
+  stringplugin.use:
+    description: Use the rank-based string command.
+    default: true

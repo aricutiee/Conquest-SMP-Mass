@@ -10,20 +10,22 @@ import java.util.Objects;
 public final class ConquestGrimIntegration implements Listener, CommandExecutor, AutoCloseable {
     private final JavaPlugin plugin;
     private Binding binding;
+    private final ConquestIntel intel;
     interface Binding extends AutoCloseable {
         void status(CommandSender sender);
         @Override void close();
     }
-    public ConquestGrimIntegration(JavaPlugin plugin) { this.plugin = plugin; }
+    public ConquestGrimIntegration(JavaPlugin plugin) { this.plugin = plugin; this.intel = new ConquestIntel(plugin); }
     public void start() {
         Objects.requireNonNull(plugin.getCommand("conquestac")).setExecutor(this);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        intel.start();
         connect();
     }
     private void connect() {
         if (binding != null || !plugin.getServer().getPluginManager().isPluginEnabled("GrimAC")) return;
         try {
-            binding = GrimBinding.connect(plugin);
+            binding = GrimBinding.connect(plugin, intel);
             plugin.getLogger().info("GrimAC integration active: automatic console punishments blocked; movement/reach checks remain enabled.");
         } catch (RuntimeException | LinkageError ex) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Grim integration could not attach. Check /conquestac and Grim's punishments.yml before accepting players.", ex);
@@ -35,7 +37,8 @@ public final class ConquestGrimIntegration implements Listener, CommandExecutor,
     }
     @Override public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("conquest.anticheat.status")) { sender.sendMessage("You do not have permission."); return true; }
-        if (args.length != 0) return false;
+        if (args.length != 0) return intel.command(sender,args);
+        intel.status(sender);
         if (binding == null) sender.sendMessage("ConquestAC: Grim is absent or the integration failed. Check startup logs.");
         else binding.status(sender);
         if (plugin.getServer().getPluginManager().isPluginEnabled("MLSAC"))
@@ -44,6 +47,7 @@ public final class ConquestGrimIntegration implements Listener, CommandExecutor,
     }
     @Override public void close() {
         if (binding != null) { binding.close(); binding = null; }
+        intel.close();
         HandlerList.unregisterAll(this);
     }
 }

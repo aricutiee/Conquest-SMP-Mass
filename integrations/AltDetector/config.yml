@@ -1,0 +1,40 @@
+detection:
+  enabled: true
+  min_risk_to_alert: 0.50
+  min_risk_to_flag: 0.70
+  min_risk_to_autoban: 0.85
+  run_on_first_join: true
+auto_ban:
+  enabled: false
+  require_confirmed_link: true
+  also_ban_originals: false
+layer_weights:
+  ip_match: 0.40
+  uuid_history: 0.25
+  pattern_analysis: 0.25
+  behavior_fingerprint: 0.10
+pattern_analysis:
+  enabled: true
+  lookback_days: 30
+  session_shift_window_minutes: 5
+  never_concurrent_min_logins: 10
+  rapid_alternation_window_hours: 2
+storage:
+  database_file: altdetector.db
+  max_ips_per_player: 20
+  max_usernames_per_player: 50
+  prune_inactive_days: 30
+  prune_on_startup: true
+alerts:
+  console_log: true
+  console_log_level: WARN
+  alert_queue_size: 50
+  cooldown_minutes: 30
+privacy:
+  anonymize_ips: false
+whitelist:
+  bypass_permission: altdetector.bypass
+  shared_ip_groups: []
+update_checker:
+  enabled: false
+suspicious_ranges: []

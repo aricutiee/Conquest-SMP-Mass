@@ -22,7 +22,7 @@ import java.util.*;
 
 /** Vanilla villagers, decorative display entities and server-owned menus. */
 public final class SpawnNpcs implements Listener,CommandExecutor,TabCompleter,AutoCloseable {
- enum Kind {utilities,discord,races,rtp,reroll}
+ enum Kind {utilities,discord,races,rtp,reroll,spawners}
  private record Actor(Villager body,List<Entity> decorations){void remove(){body.remove();decorations.forEach(Entity::remove);}}
  private static final class Menu implements InventoryHolder {
   final String kind;final UUID owner;Inventory inventory;final Map<Integer,ItemStack> stock=new HashMap<>();final Map<Integer,Long> prices=new HashMap<>();
@@ -33,8 +33,8 @@ public final class SpawnNpcs implements Listener,CommandExecutor,TabCompleter,Au
  private final Map<UUID,Long> clicks=new HashMap<>();private final ShardRewards rewards;private BukkitTask task;private UUID editor;private boolean relocating;
  public SpawnNpcs(TurtleRolesPlugin plugin){this.plugin=plugin;file=plugin.getDataFolder().toPath().resolve("npcs.yml");data=YamlConfiguration.loadConfiguration(file.toFile());rewards=new ShardRewards(plugin);
   defaults("discord-invite","https://discord.gg/hn23SeVzh3");
-  String[] names={"Utilities","Discord","Races Guide","Random Teleport","Race Reroll"};String[] colors={"purple","purple","green","gold","pink"};
-  String[] lines={"Buy supplies with shards","Right-click me to get an invite to our Discord server","Discover your race and its abilities","Right-click to randomly teleport","Roll a random race for 250 shards"};
+  String[] names={"Utilities","Discord","Races Guide","Random Teleport","Race Reroll","Spawner Shop"};String[] colors={"purple","purple","green","gold","pink","purple"};
+  String[] lines={"Buy supplies with shards","Right-click me to get an invite to our Discord server","Discover your race and its abilities","Right-click to randomly teleport","Roll a random race for 250 shards","Buy virtual spawners with shards"};
   for(Kind kind:Kind.values()){defaults(kind+".title",names[kind.ordinal()]);defaults(kind+".color",colors[kind.ordinal()]);defaults(kind+".description",lines[kind.ordinal()]);}
   if(!data.getBoolean("utilities-purple-v1")){data.set("utilities.color","purple");data.set("utilities-purple-v1",true);save();}
   if(!data.contains("shop-initialized")){Material[] items={Material.PACKED_ICE,Material.WIND_CHARGE,Material.OBSIDIAN,Material.CHORUS_FRUIT};for(int i=0;i<items.length;i++)data.set("shop."+i+".item",new ItemStack(items[i],16));data.set("shop-initialized",true);}
@@ -56,11 +56,11 @@ public final class SpawnNpcs implements Listener,CommandExecutor,TabCompleter,Au
   if(nearest!=null){var direction=nearest.getEyeLocation().toVector().subtract(a.body.getEyeLocation().toVector());Location facing=l.clone().setDirection(direction);a.body.setRotation(facing.getYaw(),Math.clamp(facing.getPitch(),-35,35));}
  }}
  static Location orbit(Location anchor,double phase,double seconds){return anchor.clone().add(Math.cos(phase)*.85,1.5+Math.sin(seconds*1.6+phase)*.15,Math.sin(phase)*.85);}
- private Actor create(Kind k,Location l){List<Entity> decorations=new ArrayList<>();Villager body=l.getWorld().spawn(l,Villager.class,v->{v.setAI(false);v.setAdult();v.setInvulnerable(true);v.setSilent(true);v.setGravity(false);v.setCollidable(false);v.setPersistent(false);v.setRemoveWhenFarAway(false);v.setCanPickupItems(false);v.setProfession(switch(k){case utilities->Villager.Profession.TOOLSMITH;case discord->Villager.Profession.CLERIC;case races->Villager.Profession.LIBRARIAN;case rtp->Villager.Profession.CARTOGRAPHER;case reroll->Villager.Profession.ARMORER;});v.setVillagerType(k==Kind.utilities?Villager.Type.SNOW:Villager.Type.PLAINS);});
+ private Actor create(Kind k,Location l){List<Entity> decorations=new ArrayList<>();Villager body=l.getWorld().spawn(l,Villager.class,v->{v.setAI(false);v.setAdult();v.setInvulnerable(true);v.setSilent(true);v.setGravity(false);v.setCollidable(false);v.setPersistent(false);v.setRemoveWhenFarAway(false);v.setCanPickupItems(false);v.setProfession(switch(k){case utilities->Villager.Profession.TOOLSMITH;case discord->Villager.Profession.CLERIC;case races->Villager.Profession.LIBRARIAN;case rtp->Villager.Profession.CARTOGRAPHER;case reroll->Villager.Profession.ARMORER;case spawners->Villager.Profession.TOOLSMITH;});v.setVillagerType(k==Kind.utilities?Villager.Type.SNOW:Villager.Type.PLAINS);});
   try{
    TextDisplay text=l.getWorld().spawn(l.clone().add(0,2.5,0),TextDisplay.class,e->{e.setPersistent(false);e.setInvulnerable(true);e.setGravity(false);e.setBillboard(Display.Billboard.CENTER);e.setBrightness(new Display.Brightness(15,15));e.setSeeThrough(false);e.setDefaultBackground(false);e.setBackgroundColor(Color.fromARGB(0));e.setShadowed(true);e.setLineWidth(280);
     e.text(label(data.getString(k+".title"),color(k)).decorate(TextDecoration.BOLD).append(Component.newline()).append(label(data.getString(k+".description"),k==Kind.utilities?color(k):NamedTextColor.WHITE)).append(Component.newline()).append(label("→ interact ←",color(k)).decorate(TextDecoration.BOLD)));});decorations.add(text);
-   Material icon=switch(k){case utilities->Material.WIND_CHARGE;case discord->Material.AMETHYST_SHARD;case races->Material.BOOK;case rtp->Material.COMPASS;case reroll->Material.NETHER_STAR;};
+   Material icon=switch(k){case utilities->Material.WIND_CHARGE;case discord->Material.AMETHYST_SHARD;case races->Material.BOOK;case rtp->Material.COMPASS;case reroll->Material.NETHER_STAR;case spawners->Material.SPAWNER;};
    for(int side:new int[]{-1,1}){ItemDisplay item=l.getWorld().spawn(l.clone().add(side*.85,1.5,0),ItemDisplay.class,e->{e.setPersistent(false);e.setInvulnerable(true);e.setGravity(false);e.setBrightness(new Display.Brightness(15,15));e.setBillboard(Display.Billboard.CENTER);e.setTeleportDuration(10);e.setItemStack(new ItemStack(icon));e.setTransformationMatrix(new Matrix4f().scaling(.5f));});decorations.add(item);}
    return new Actor(body,decorations);
   }catch(RuntimeException e){body.remove();decorations.forEach(Entity::remove);throw e;}
@@ -68,7 +68,7 @@ public final class SpawnNpcs implements Listener,CommandExecutor,TabCompleter,Au
  private boolean usable(Player p){if(!ClientCompatibility.authenticated(p)||p.isDead())return false;if(plugin.combat().tagged(p)){p.sendMessage("NPC services are unavailable during combat.");return false;}return true;}
  @EventHandler(priority=EventPriority.HIGHEST) public void interact(PlayerInteractEntityEvent e){Kind k=entities.get(e.getRightClicked().getUniqueId());if(k==null)return;boolean blocked=e.isCancelled();e.setCancelled(true);if(blocked||e.getHand()!=EquipmentSlot.HAND||!usable(e.getPlayer()))return;
   Player p=e.getPlayer();long now=System.currentTimeMillis();if(now-clicks.getOrDefault(p.getUniqueId(),0L)<400)return;clicks.put(p.getUniqueId(),now);p.playSound(p.getLocation(),Sound.BLOCK_NOTE_BLOCK_PLING,.25f,1.7f);
-  switch(k){case utilities->shop(p);case races->guide(p);case reroll->reroll(p);case rtp->p.performCommand("rtp");case discord->{String url=data.getString("discord-invite");p.sendMessage(MiniMessage.miniMessage().deserialize("<bold><gradient:#914CFF:#DDB8FF>"+ConquestMotd.smallCaps("This is our Discord")+"</gradient></bold>").append(Component.newline()).append(Component.text(url,TextColor.color(0xC59AFF)).clickEvent(ClickEvent.openUrl(url)).hoverEvent(HoverEvent.showText(label("Open our Discord",NamedTextColor.LIGHT_PURPLE)))));}}
+  switch(k){case spawners->{if(plugin.virtualSpawners()!=null)plugin.virtualSpawners().shop(p);else p.sendMessage("Spawner shop is unavailable. Contact staff.");}case utilities->shop(p);case races->guide(p);case reroll->reroll(p);case rtp->p.performCommand("rtp");case discord->{String url=data.getString("discord-invite");p.sendMessage(MiniMessage.miniMessage().deserialize("<bold><gradient:#914CFF:#DDB8FF>"+ConquestMotd.smallCaps("This is our Discord")+"</gradient></bold>").append(Component.newline()).append(Component.text(url,TextColor.color(0xC59AFF)).clickEvent(ClickEvent.openUrl(url)).hoverEvent(HoverEvent.showText(label("Open our Discord",NamedTextColor.LIGHT_PURPLE)))));}}
  }
  @EventHandler(priority=EventPriority.HIGHEST) public void damage(EntityDamageEvent e){if(entities.containsKey(e.getEntity().getUniqueId()))e.setCancelled(true);}
  @EventHandler(priority=EventPriority.HIGHEST) public void portal(EntityTeleportEvent e){if(!relocating&&entities.containsKey(e.getEntity().getUniqueId()))e.setCancelled(true);}
@@ -120,7 +120,7 @@ public final class SpawnNpcs implements Listener,CommandExecutor,TabCompleter,Au
    if(a.length>=4&&List.of("title","description","color").contains(a[2])){String value=String.join(" ",Arrays.copyOfRange(a,3,a.length));if(value.length()>180||(a[2].equals("color")&&SkyWords.color(value)==null)){s.sendMessage("Use a valid color and at most 180 characters.");return true;}if(set(k+"."+a[2],value)){clear(k);tick();s.sendMessage("NPC updated.");}return true;}
   }help(s);return true;
  }
- private static void help(CommandSender s){s.sendMessage("/npc set|edit|remove <utilities|discord|races|rtp|reroll>, /npc list. /npc edit utilities price <slot 1-45> <shards>. Other edits: title, description, color followed by text.");}
+ private static void help(CommandSender s){s.sendMessage("/npc set|edit|remove <utilities|discord|races|rtp|reroll|spawners>, /npc list. /npc edit utilities price <slot 1-45> <shards>. Other edits: title, description, color followed by text.");}
  @Override public List<String> onTabComplete(CommandSender s,Command c,String label,String[] a){if(!ShardRewards.admin(plugin,s))return List.of();List<String> values=a.length==1?List.of("set","edit","remove","list"):a.length==2?Arrays.stream(Kind.values()).map(Enum::name).toList():a.length==3&&a[0].equals("edit")?List.of("title","description","color","price","invite"):a.length==4&&a[2].equals("color")?SkyWords.COLORS:List.of();String prefix=a.length==0?"":a[a.length-1].toLowerCase(Locale.ROOT);return values.stream().filter(v->v.startsWith(prefix)).toList();}
  @Override public void close(){if(task!=null)task.cancel();for(Player p:Bukkit.getOnlinePlayers())if(p.getOpenInventory().getTopInventory().getHolder() instanceof Menu)p.closeInventory();rewards.close();for(Kind k:Kind.values())clear(k);HandlerList.unregisterAll(this);clicks.clear();}
 }

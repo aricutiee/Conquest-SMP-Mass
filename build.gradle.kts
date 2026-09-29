@@ -1,3 +1,6 @@
+import java.net.URI
+import java.security.MessageDigest
+
 plugins {
     java
     `java-library`
@@ -5,7 +8,7 @@ plugins {
 }
 
 group = "dev.turtleroles"
-version = "3.23.3"
+version = "3.24.0"
 
 java {
     toolchain {
@@ -31,7 +34,31 @@ configurations {
     }
 }
 
+// Upstream plugins are compile-only dependencies, never shaded or redistributed.
+val integrationJars = listOf(
+    Triple("AltDetector-1.0.0.jar", "https://cdn.modrinth.com/data/3j3PTnjN/versions/cKoCHEhU/AltDetector-1.0.0.jar", "ccbc17eda67105a467c2a3dd9a8d2e904aa27d5c"),
+    Triple("clientpolicy-1.0.0.jar", "https://cdn.modrinth.com/data/tmlnLXud/versions/bkJV5DaN/clientpolicy-1.0.0.jar", "678fcb840392fa0aefaa6986e34cc092b319011b")
+)
+val fetchIntegrationApis by tasks.registering {
+    outputs.files(integrationJars.map { layout.buildDirectory.file("integration-api/${it.first}") })
+    doLast {
+        for ((name, url, hash) in integrationJars) {
+            val target = layout.buildDirectory.file("integration-api/$name").get().asFile
+            target.parentFile.mkdirs()
+            if (!target.exists()) {
+                if (gradle.startParameter.isOffline) error("Missing $name; run fetchIntegrationApis once online.")
+                URI(url).toURL().openStream().use { input -> target.outputStream().use { input.copyTo(it) } }
+            }
+            val digest = MessageDigest.getInstance("SHA-1").digest(target.readBytes()).joinToString("") { "%02x".format(it) }
+            check(digest == hash) { "Integration dependency checksum mismatch: $name" }
+        }
+    }
+}
+val integrationApiFiles = files(integrationJars.map { layout.buildDirectory.file("integration-api/${it.first}") }).builtBy(fetchIntegrationApis)
+
 dependencies {
+    compileOnly(integrationApiFiles)
+    testImplementation(integrationApiFiles)
     compileOnly("com.github.retrooper:packetevents-api:2.14.0") { isTransitive = false }
     testImplementation("com.github.retrooper:packetevents-api:2.14.0") { isTransitive = false }
     testImplementation("com.github.retrooper:packetevents-netty-common:2.14.0") { isTransitive = false }

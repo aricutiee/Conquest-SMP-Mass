@@ -31,7 +31,7 @@ class GrimIntegrationTest {
         binding.action(command); assertTrue(command.isCancelled());
         CommandExecuteEvent alert = new CommandExecuteEvent(mock(GrimUser.class), mock(AbstractCheck.class), "test", "[ConquestAC] Alex failed Simulation");
         binding.action(alert); assertFalse(alert.isCancelled());
-        binding.close(); verify(bus).unregisterListener(eq(plugin), any());
+        binding.close(); verify(bus,times(2)).unregisterListener(eq(plugin), any());
     }
     @Test @SuppressWarnings("unchecked") void profileKeepsDetectionAndCorrectionWithoutPunishmentCommands() {
         Map<String,Object> config = yaml("config.yml");

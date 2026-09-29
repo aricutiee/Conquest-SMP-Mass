@@ -1,6 +1,8 @@
 # Conquest SMP Mass
 
-Paper 1.21.11 server plugin, maintained by ari. Requires Java 21.
+Paper 1.21.11 server plugin, maintained by ari. Requires Java 21. Current release: **3.24.0**.
+
+This update adds a virtual Spawner Shop, persistent rank-based /string cooldowns and combined AltDetector, ClientPolicy and GrimAC staff inspection. Read [the update guide](UPDATE-3.24.0.md) and [deployment verification](DEPLOYMENT-3.24.0.md).
 
 ## Build
 
@@ -20,7 +22,7 @@ King's Crown remains a separate optional integration. GrimAC, Floodgate, Geyser,
 
 ## Verification
 
-Automated checks cover races, combat, staff restrictions, rewards, spawn, dragon rules and RTP border/landing rules. A successful build is not a claim that every behavior has been exercised by a Minecraft client. Version 3.17.1 passed 279 automated tests and the packaged SQLite check, and was loaded on the live Paper 1.21.11 server on September 28, 2026. Actual player-operated RTP, dragon encounters and visual effects still require in-game verification.
+Automated checks cover races, combat, staff restrictions, rewards, spawn, dragon rules and RTP border/landing rules. A successful build is not a claim that every behavior has been exercised by a Minecraft client. Version 3.24.0 passed 339 automated tests and was loaded on the live Paper 1.21.11 server on September 29, 2026. All three anti-cheat integrations reported connected; evidence queries and alt lookup returned successfully. Real-client rendering, spawner purchases and actual detection need gameplay verification.
 
 ## Related projects
 

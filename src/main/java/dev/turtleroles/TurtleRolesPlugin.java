@@ -40,6 +40,9 @@ import java.util.logging.Level;
 public final class TurtleRolesPlugin extends AriServerUtil {
     private dev.biomeraces.RaceModule races;
     private dev.turtleroles.service.SpawnNpcs spawnNpcs;
+    private dev.turtleroles.service.VirtualSpawners virtualSpawners;
+    private dev.turtleroles.service.RankStringCommand rankString;
+    public dev.turtleroles.service.VirtualSpawners virtualSpawners(){return virtualSpawners;}
     public dev.biomeraces.RaceModule races(){return races;}
     public void cancelAfkSelection(java.util.UUID id){if(spawnNpcs!=null)spawnNpcs.cancelAfkSelection(id);}
     private dev.turtleroles.survival.ConquestDragon dragons;
@@ -204,7 +207,10 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         bedrockUpdater.start();
         races = new dev.biomeraces.RaceModule(this);
         if (!races.enable()) return;
+        virtualSpawners=new dev.turtleroles.service.VirtualSpawners(this);
+        try { virtualSpawners.start(); } catch(Exception ex) { getLogger().log(Level.SEVERE,"Virtual spawner storage failed to load; module disabled to preserve data",ex); virtualSpawners=null; }
         spawnNpcs=new dev.turtleroles.service.SpawnNpcs(this);spawnNpcs.start();
+        rankString=new dev.turtleroles.service.RankStringCommand(this);rankString.start();
         anticheat = new dev.turtleroles.anticheat.ConquestGrimIntegration(this);
         anticheat.start();
         getServer().getPluginManager().registerEvents(new dev.turtleroles.combat.WeaponDamageCaps(this),this);
@@ -254,6 +260,8 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         if (bedrockUpdater != null) bedrockUpdater.close();
         if (anticheat != null) anticheat.close();
         if (spawnNpcs != null) spawnNpcs.close();
+        if (virtualSpawners != null) virtualSpawners.close();
+        if (rankString != null) rankString.close();
         if (races != null) races.close();
         if (roleService != null) roleService.closePermissions();
         if (eventSystem != null) eventSystem.shutdown();

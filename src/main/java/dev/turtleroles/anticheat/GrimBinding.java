@@ -4,6 +4,7 @@ import ac.grim.grimac.api.GrimAPIProvider;
 import ac.grim.grimac.api.GrimAbstractAPI;
 import ac.grim.grimac.api.event.GrimEventListener;
 import ac.grim.grimac.api.event.events.CommandExecuteEvent;
+import ac.grim.grimac.api.event.events.FlagEvent;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.util.concurrent.atomic.AtomicLong;
@@ -14,10 +15,19 @@ final class GrimBinding implements ConquestGrimIntegration.Binding {
     private final GrimAbstractAPI api;
     private final AtomicLong blocked = new AtomicLong();
     private final GrimEventListener<CommandExecuteEvent> listener = this::action;
-    static GrimBinding connect(JavaPlugin plugin) { return new GrimBinding(plugin, GrimAPIProvider.get()); }
-    GrimBinding(JavaPlugin plugin, GrimAbstractAPI api) {
+    private final GrimEventListener<FlagEvent> flagListener;
+    static GrimBinding connect(JavaPlugin plugin, ConquestIntel intel) { return new GrimBinding(plugin, GrimAPIProvider.get(), intel); }
+    GrimBinding(JavaPlugin plugin, GrimAbstractAPI api) { this(plugin,api,null); }
+    GrimBinding(JavaPlugin plugin, GrimAbstractAPI api, ConquestIntel intel) {
         this.plugin = plugin; this.api = java.util.Objects.requireNonNull(api, "Grim API is not ready");
+        flagListener = event -> {
+            if(intel!=null && !event.isCancelled()) intel.record(event.getUser().getUniqueId(),event.getUser().getName(),"GRIM",
+                "Check="+IntelStore.clean(event.getCheck().getCheckName(),80)+"; VL="+event.getViolations()
+                +"; experimental="+event.getCheck().isExperimental()+"; ping="+event.getUser().getTransactionPing()
+                +"; client version="+IntelStore.clean(event.getUser().getVersionName(),32), false);
+        };
         api.getEventBus().subscribe(plugin, CommandExecuteEvent.class, listener);
+        api.getEventBus().subscribe(plugin, FlagEvent.class, flagListener);
     }
     void action(CommandExecuteEvent event) {
         if (!GrimPunishmentPolicy.allows(event.getCommand())) {
@@ -37,5 +47,5 @@ final class GrimBinding implements ConquestGrimIntegration.Binding {
         if (!format.startsWith(GrimPunishmentPolicy.ALERT_PREFIX)) sender.sendMessage("Warning: Grim alerts-format must start with [ConquestAC] followed by a space for the notification guard.");
         sender.sendMessage("Connection timeouts, malformed-packet errors and packet-flood disconnections remain possible; these are not violation punishments.");
     }
-    @Override public void close() { api.getEventBus().unregisterListener(plugin, listener); }
+    @Override public void close() { api.getEventBus().unregisterListener(plugin, listener); api.getEventBus().unregisterListener(plugin, flagListener); }
 }
