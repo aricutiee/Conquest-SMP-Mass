@@ -79,3 +79,7 @@ leaderboards:
 weapon-damage-caps:
   spear: 0.70
   mace: 0.99
+
+# Nicknames copy name and skin; real UUID, permissions and saved progress stay unchanged.
+nicknames:
+  lookup-cooldown-seconds: 10

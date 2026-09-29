@@ -1,6 +1,6 @@
 # Conquest SMP: player and staff guide
 
-Version 3.17.5 | Paper 1.21.11 | Author: ari
+Version 3.18.0 | Paper 1.21.11 | Author: ari
 
 This guide describes the implemented Conquest rules and the installed integrations. It supersedes older release notes where the rules changed. Timings and loot amounts below are the shipped settings unless identified otherwise. Administrators can change configuration, rewards and third-party permissions later.
 
@@ -319,3 +319,7 @@ The 3.17.0 build passed 279 automated tests with no failures or skips, plus its 
 Admins can use `/juggernaut animation` and `/warlord animation` in game to preview the death sequences at their location. These do not kill anyone, end an event, start a hunt or issue rewards. Nearby players can see the visual effects.
 
 Warlord music: The Dread by Kevin MacLeod (incompetech.com), licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). The first 13 seconds are used with fades. Java players receive it through the server pack; Bedrock uses a vanilla fallback.
+
+## Nicknames
+
+Booster, Booster X2 and higher ranks can use `/nick <existing Java username>` to copy a name and skin. `/nick reset` restores the original profile. Helper and higher staff can use `/nick check [player]` to inspect real account names and UUIDs. Nicknames reset on logout, plugin shutdown, rank loss, or when the real owner of the copied name joins. Real UUIDs, permissions and saved progress never change. Third-party UUID-based tier mods may still show the original account tiers.

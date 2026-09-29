@@ -53,6 +53,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
     public dev.turtleroles.survival.SurvivalModule survival() { return survival; }
     private dev.turtleroles.anticheat.ConquestGrimIntegration anticheat;
     private dev.turtleroles.service.BoosterKits boosterKits;
+    private dev.turtleroles.service.NicknameService nicknames;
     private SQLiteDatabase database;
     private RoleService roleService;
     public RoleService roleService() { return roleService; }
@@ -131,6 +132,8 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         catch (Exception ex) { getLogger().log(Level.SEVERE, "Booster kit storage failed", ex); getServer().getPluginManager().disablePlugin(this); return; }
         PunishmentService punishments = new PunishmentService(policy, roles, players, punishmentRepository);
         presentation = new PresentationService(roles);
+        nicknames = new dev.turtleroles.service.NicknameService(this, presentation);
+        nicknames.start();
         tabList = new TabListService(this, presentation);
         if (config.resourcePack().selfHostEnabled()) {
             try {
@@ -231,6 +234,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
 
     @Override
     public void onDisable() {
+        if (nicknames != null) nicknames.close();
         if (boosterKits != null) boosterKits.close();
         if (packs != null) packs.close();
         if (combat != null) combat.close();

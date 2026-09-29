@@ -13,7 +13,7 @@ class CombinedPluginTest {
         assertEquals("ConquestSMP", descriptor.get("name"));
         assertEquals(TurtleRolesPlugin.class.getName(), descriptor.get("main"));
         Map<String, Map<String, Object>> commands = (Map<String, Map<String, Object>>) descriptor.get("commands");
-        assertEquals(Set.of("leaderboard", "rtp", "smp", "kit", "enderchest", "home", "homes", "sethome", "delhome", "spawn", "worldspawn", "setworldspawn", "dimensions", "conquestac", "race", "roll", "events", "event", "warlord", "warlordevent", "juggernaut", "role", "tr", "warn", "warnings", "unwarn", "tempmute", "mute", "unmute", "tempban", "ban", "unban", "kick", "history", "case", "gamemode", "invsee", "util", "report", "reports", "staffmode", "staffchat", "sc"), commands.keySet());
+        assertEquals(Set.of("nick", "leaderboard", "rtp", "smp", "kit", "enderchest", "home", "homes", "sethome", "delhome", "spawn", "worldspawn", "setworldspawn", "dimensions", "conquestac", "race", "roll", "events", "event", "warlord", "warlordevent", "juggernaut", "role", "tr", "warn", "warnings", "unwarn", "tempmute", "mute", "unmute", "tempban", "ban", "unban", "kick", "history", "case", "gamemode", "invsee", "util", "report", "reports", "staffmode", "staffchat", "sc"), commands.keySet());
         Set<String> names = new HashSet<>(commands.keySet());
         commands.values().forEach(spec -> {
             for (String alias : (List<String>) spec.getOrDefault("aliases", List.of())) {
