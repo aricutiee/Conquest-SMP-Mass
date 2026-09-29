@@ -19,7 +19,7 @@ final class SurvivalSidebar implements AutoCloseable {
     private static final TextColor PURPLE = TextColor.color(0xB477FF);
     private static final Key ICON_FONT = Key.key("turtleroles:stats");
     private static final Key SIDEBAR_FONT = Key.key("turtleroles:sidebar");
-    private static final int LINE_COUNT = 12;
+    private static final int LINE_COUNT = 13;
     private java.util.function.ToLongFunction<Player> shards = p -> 0;
     void shards(java.util.function.ToLongFunction<Player> source){shards=source;}
     SurvivalSidebar(NamespacedKey streak, Predicate<Player> customIcons){this.streak=streak;this.customIcons=customIcons;}
@@ -44,7 +44,8 @@ final class SurvivalSidebar implements AutoCloseable {
                 Component.space(),heading("OTHER",icons),rule,
                 Component.text("◆ ",PURPLE).append(letters("Shards: ",icons).decorate(TextDecoration.BOLD)).append(letters(Long.toString(shards.applyAsLong(player)),icons).decoration(TextDecoration.BOLD,false)),
                 stat(3,"Ping",player.getPing()+"ms",icons),
-                stat(4,"Playtime",duration(Integer.toUnsignedLong(player.getStatistic(Statistic.PLAY_ONE_MINUTE))/20),icons),rule};
+                stat(4,"Playtime",duration(Integer.toUnsignedLong(player.getStatistic(Statistic.PLAY_ONE_MINUTE))/20),icons),
+                letters("IP: ",icons).decorate(TextDecoration.BOLD).append(Component.text("ConquestSMP.net",PURPLE).font(Key.key("minecraft:default")).decoration(TextDecoration.BOLD,false)),rule};
         for(int i=0;i<lines.length;i++)view.lines.get(i).prefix(lines[i]);
         // A grace-period objective can temporarily occupy the sidebar without being overwritten.
         if(view.board.getObjective(DisplaySlot.SIDEBAR)==null)view.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
