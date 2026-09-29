@@ -32,4 +32,12 @@ class SkyWordsTest {
   var s=new SkyWords(plugin());var sender=mock(CommandSender.class);s.onCommand(sender,null,"setword",new String[]{"purple","Crates"});
   assertTrue(s.words.isEmpty());verify(sender).sendMessage("Only administrators can manage floating words.");
  }
+ @Test void fullTextReferenceSupportsSpacesAndSizeFifty(){try(var b=mockStatic(Bukkit.class)){
+  var p=plugin();var s=new SkyWords(p);s.change("word1",new SkyWords.Word("word1",UUID.randomUUID(),0,80,0,"purple","Welcome Home",4));
+  var sender=mock(CommandSender.class);when(sender.hasPermission("conquest.setword.admin")).thenReturn(true);
+  s.onCommand(sender,null,"setword",new String[]{"size","Welcome","Home","50"});assertEquals(50,s.words.get("word1").scale());
+  s.onCommand(sender,null,"setword",new String[]{"edit","Welcome","Home","red","The","Arena"});assertEquals("The Arena",s.words.get("word1").text());assertEquals("red",s.words.get("word1").color());
+  assertTrue(s.onTabComplete(sender,null,"setword",new String[]{"edit","The"}).contains("The Arena"));
+  s.onCommand(sender,null,"setword",new String[]{"remove","The","Arena"});assertTrue(s.words.isEmpty());
+ }}
 }

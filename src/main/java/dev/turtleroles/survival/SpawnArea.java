@@ -15,8 +15,9 @@ public final class SpawnArea implements Listener {
     private final TurtleRolesPlugin plugin;
     private final SurvivalModule module;
     private final SpawnBarrier barrier;
-    public void start(){barrier.start();}
-    public void close(){barrier.close();}
+    private SpawnNoPush noPush;
+    public void start(){barrier.start();noPush=new SpawnNoPush(plugin,this);noPush.start();}
+    public void close(){if(noPush!=null)noPush.close();barrier.close();}
     private final Map<UUID,Location> selections=new HashMap<>();
     private final Set<UUID> selecting=new HashSet<>();
     private final Map<UUID,Long> notices=new HashMap<>();
@@ -27,11 +28,13 @@ public final class SpawnArea implements Listener {
         if(a==null||b==null||a.getWorld()==null||b.getWorld()==null)return null;
         return SpawnRegion.between(a,b);
     }
+    public void cancelSelection(UUID id){selecting.remove(id);selections.remove(id);}
     public boolean inside(Location l){var region=region();return region!=null&&region.contains(l);}
     public void command(Player player,String[] args){
         if(!player.hasPermission("conquest.world.admin")){player.sendMessage("Only administrators can edit the spawn area.");return;}
         if(args[0].equalsIgnoreCase("area")){
             if(args.length>1&&args[1].equalsIgnoreCase("cancel")){selecting.remove(player.getUniqueId());selections.remove(player.getUniqueId());player.sendMessage("Spawn selection cancelled.");return;}
+            plugin.cancelAfkSelection(player.getUniqueId());
             selecting.add(player.getUniqueId());selections.remove(player.getUniqueId());
             player.sendMessage("Left-click the first corner block, then right-click the opposite corner block. Only horizontal boundaries matter; protection covers every height. Use /spawn area cancel to cancel.");return;
         }

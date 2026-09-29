@@ -39,6 +39,9 @@ import java.util.logging.Level;
 
 public final class TurtleRolesPlugin extends AriServerUtil {
     private dev.biomeraces.RaceModule races;
+    private dev.turtleroles.service.SpawnNpcs spawnNpcs;
+    public dev.biomeraces.RaceModule races(){return races;}
+    public void cancelAfkSelection(java.util.UUID id){if(spawnNpcs!=null)spawnNpcs.cancelAfkSelection(id);}
     private dev.turtleroles.survival.ConquestDragon dragons;
     private dev.turtleroles.survival.Leaderboards leaderboards;
     private dev.turtleroles.service.SkyWords skyWords;
@@ -201,6 +204,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         bedrockUpdater.start();
         races = new dev.biomeraces.RaceModule(this);
         if (!races.enable()) return;
+        spawnNpcs=new dev.turtleroles.service.SpawnNpcs(this);spawnNpcs.start();
         anticheat = new dev.turtleroles.anticheat.ConquestGrimIntegration(this);
         anticheat.start();
         getServer().getPluginManager().registerEvents(new dev.turtleroles.combat.WeaponDamageCaps(this),this);
@@ -249,6 +253,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         if (enderChests != null) enderChests.close();
         if (bedrockUpdater != null) bedrockUpdater.close();
         if (anticheat != null) anticheat.close();
+        if (spawnNpcs != null) spawnNpcs.close();
         if (races != null) races.close();
         if (roleService != null) roleService.closePermissions();
         if (eventSystem != null) eventSystem.shutdown();

@@ -2,6 +2,7 @@ package dev.biomeraces;
 
 public final class PlayerState {
     public Race base;
+    public long shards;
     public Race pendingRoll;
     public long offenseUntil, defenseUntil;
     public final CombatChain chain = new CombatChain();

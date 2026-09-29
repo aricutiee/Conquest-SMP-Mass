@@ -8,6 +8,15 @@ description: Conquest SMP races, utilities, events, TurtleRoles and KingsCrown i
 softdepend: [KingsCrown, GrimAC, floodgate, AuthMe, Essentials, EssentialsSpawn, packetevents]
 
 commands:
+  npc:
+    description: Place and edit Conquest service NPCs and shop offers.
+    usage: /npc set|edit|remove <utilities|discord|races|rtp|reroll>
+  afk:
+    description: Select the two corners of the shard-earning AFK zone.
+    usage: /afk [off|cancel]
+  shards:
+    description: View shards or grant shards as an administrator.
+    usage: /shards [give <player> <amount>]
   setword:
     description: Create and manage large floating small-caps labels.
     usage: /setword <color> <text>
@@ -145,6 +154,9 @@ commands:
     permission: serverutil.staffchat
 
 permissions:
+  conquest.npc.admin:
+    description: Manage NPCs, shard grants and the AFK zone.
+    default: op
   conquest.setword.admin:
     description: Manage floating sky words.
     default: op

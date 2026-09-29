@@ -104,6 +104,17 @@ public final class RaceModule implements AutoCloseable {
             else location.getWorld().playSound(location, visual.sound(), SoundCategory.PLAYERS, visual.volume(), visual.pitch());
         }
     }
+    public boolean paidReroll(Player player,long price) {
+        if(!enabled||!player.isOnline()||player.isDead()||rolls.running(player.getUniqueId())||state(player).base==null||RaceRuntime.holdsEgg(player)||state(player).dragon){player.sendMessage("Finish your current roll or transformation before rerolling.");return false;}
+        if(host instanceof dev.turtleroles.TurtleRolesPlugin conquest&&conquest.combat().tagged(player)){player.sendMessage("You cannot reroll during combat.");return false;}
+        try {
+            Race result=new RollSettings(settings.yaml).choose(java.util.random.RandomGenerator.getDefault());
+            if(!store.purchaseReroll(player.getUniqueId(),result,price)){player.sendMessage("You need "+price+" shards to reroll.");return false;}
+        }catch(IOException ex){getLogger().log(java.util.logging.Level.SEVERE,"Could not save paid reroll",ex);player.sendMessage("Purchase could not be saved. No shards were spent.");return false;}
+        state(player).chain.reset();effects.clearSelf(player);runtime.updatePassives(player);
+        if(!rolls.start(player,false))rolls.queueAssignment(player);
+        return true;
+    }
     public JavaPlugin host() { return host; }
     public boolean isEnabled() { return enabled; }
     public File getDataFolder() { return host.getDataFolder(); }

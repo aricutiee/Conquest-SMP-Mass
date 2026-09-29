@@ -42,6 +42,7 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
         file = new File(plugin.getDataFolder(), "survival.yml");
         data = YamlConfiguration.loadConfiguration(file);
         sidebar = new SurvivalSidebar(streak, plugin::hasLoadedResourcePack);
+        sidebar.shards(p -> plugin.races()==null?0:plugin.races().state(p).shards);
         protection = new SpawnProtection(this);
         spawnArea = new SpawnArea(plugin,this);
         rtp = new RandomTeleport(plugin, this::inCombat);
