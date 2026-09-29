@@ -136,4 +136,10 @@ class SpawnAreaTest {
         verify(boat).removePassenger(player);verify(boat).teleport(from);
         assertFalse(area.inside(player.getLocation()));
     }
+    @Test void cancellingLaunchAllowsSpawnBorderAgainAndOffRestores(){
+        player.setOp(true);var border=world.getWorldBorder();border.setSize(15000);border.setCenter(100,200);
+        when(plugin.smpStarted()).thenReturn(true);area.command(player,new String[]{"border"});assertEquals(15000,border.getSize());
+        when(plugin.smpStarted()).thenReturn(false);area.command(player,new String[]{"border"});assertEquals(20,border.getSize());assertEquals(15,border.getCenter().getX());assertEquals(30,border.getCenter().getZ());
+        area.command(player,new String[]{"border","off"});assertEquals(15000,border.getSize());assertEquals(100,border.getCenter().getX());assertEquals(200,border.getCenter().getZ());
+    }
 }

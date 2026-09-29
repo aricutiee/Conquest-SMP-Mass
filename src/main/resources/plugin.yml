@@ -31,8 +31,8 @@ commands:
     description: Random safe teleport within the Terralith Overworld border.
     usage: /rtp
   smp:
-    description: Start the SMP once and begin the 24-hour Booster kit unlock timer.
-    usage: /smp start
+    description: Start the SMP or cancel its launch and reset the kit unlock timer.
+    usage: /smp start [cancel]
     permission: conquestsmp.launch
   kit:
     description: Preview your Booster kit and claim its contents; operators can edit the kit.

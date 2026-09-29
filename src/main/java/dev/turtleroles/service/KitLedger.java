@@ -35,6 +35,9 @@ public final class KitLedger implements AutoCloseable {
             s.setLong(1,now);return s.executeUpdate()==1;
         }
     }
+    public synchronized boolean cancelStart() throws SQLException {
+        try(var s=db.prepareStatement("DELETE FROM kit_launch WHERE id=1")){return s.executeUpdate()==1;}
+    }
     public synchronized long launchRemaining(long now) throws SQLException {
         try(var s=db.createStatement();var result=s.executeQuery("SELECT launched_at FROM kit_launch WHERE id=1")) {
             return result.next()?Math.max(0,result.getLong(1)+DAY-now):Long.MAX_VALUE;

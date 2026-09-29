@@ -103,4 +103,9 @@ class BoosterAndMotdTest {
         assertTrue(StaffCommandGuard.commandAllowed("gamemode","/gamemode creative @s"));
         assertTrue(StaffCommandGuard.commandAllowed("ss","/ss freeze LowerStaff"));
     }
+    @Test void cancelledLaunchPersistsAndNextStartHasFreshDelayWithoutResettingClaims()throws Exception{
+        var path=temp.resolve("cancel-launch.db");UUID player=UUID.randomUUID();long now=100000;
+        try(var ledger=new KitLedger(path)){assertTrue(ledger.start(now));assertTrue(ledger.claim(player,now,3*KitLedger.DAY));assertTrue(ledger.cancelStart());assertFalse(ledger.cancelStart());assertEquals(Long.MAX_VALUE,ledger.launchRemaining(now+1000));}
+        try(var ledger=new KitLedger(path)){assertEquals(Long.MAX_VALUE,ledger.launchRemaining(now+5000));assertTrue(ledger.start(now+5000));assertEquals(KitLedger.DAY,ledger.launchRemaining(now+5000));assertEquals(3*KitLedger.DAY-5000,ledger.remaining(player,now+5000,3*KitLedger.DAY));}
+    }
 }

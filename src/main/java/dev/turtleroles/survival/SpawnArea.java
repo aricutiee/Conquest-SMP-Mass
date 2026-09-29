@@ -39,7 +39,7 @@ public final class SpawnArea implements Listener {
             player.sendMessage("Left-click the first corner block, then right-click the opposite corner block. Only horizontal boundaries matter; protection covers every height. Use /spawn area cancel to cancel.");return;
         }
         if(args.length>1&&args[1].equalsIgnoreCase("off")){restoreBorder();player.sendMessage("Normal world border restored.");return;}
-        if(plugin.smpStarted()){player.sendMessage("The SMP has already started. The pre-launch border cannot be enabled.");return;}
+        if(plugin.smpStarted()){player.sendMessage("The SMP has already started. Use /smp start cancel first, then /spawn border.");return;}
         SpawnRegion area=region();if(area==null){player.sendMessage("Select a spawn area with /spawn area first.");return;}
         World world=Bukkit.getWorld(area.world());
         if(world==null||world.getEnvironment()!=World.Environment.NORMAL){player.sendMessage("The spawn border must be in the overworld.");return;}
@@ -51,7 +51,7 @@ public final class SpawnArea implements Listener {
         }
         module.data.set("spawn-border.active",true);
         if(!module.save()){module.data.set("spawn-border.active",false);player.sendMessage("Could not save the temporary border.");return;}
-        applyBorder();player.sendMessage("Spawn border enabled. /smp start restores the normal border; /spawn border off also restores it.");
+        applyBorder();player.sendMessage("Square world border enabled around the selected spawn area. /smp start restores the normal border; /spawn border off also restores it.");
     }
     public void applyBorder(){
         if(!module.data.getBoolean("spawn-border.active"))return;

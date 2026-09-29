@@ -35,8 +35,14 @@ public final class BoosterKits implements Listener, AutoCloseable {
         plugin.getServer().getPluginManager().registerEvents(this,plugin);
         Objects.requireNonNull(plugin.getCommand("smp")).setExecutor((sender,command,label,args)->{
             if(!sender.hasPermission("conquestsmp.launch")){sender.sendMessage("You cannot start the SMP.");return true;}
-            if(args.length!=1||!args[0].equalsIgnoreCase("start")){sender.sendMessage("Usage: /smp start");return true;}
+            boolean cancel=args.length==2&&args[0].equalsIgnoreCase("start")&&args[1].equalsIgnoreCase("cancel");
+            if(!cancel&&(args.length!=1||!args[0].equalsIgnoreCase("start"))){sender.sendMessage("Usage: /smp start [cancel]");return true;}
             try {
+                if(cancel){
+                    boolean changed=ledger.cancelStart();
+                    sender.sendMessage(changed?"SMP launch cancelled. Booster kits are locked until 24 hours after the next /smp start. You can now use /spawn border.":"The SMP is already waiting to start. Use /spawn border to confine the overworld to spawn.");
+                    return true;
+                }
                 if(!ledger.start(System.currentTimeMillis())){sender.sendMessage("The SMP has already started. Its kit unlock timer has not been reset.");return true;}
                 if(plugin.survival()!=null)plugin.survival().spawnArea().restoreBorder();
                 var title=net.kyori.adventure.title.Title.title(
@@ -50,6 +56,11 @@ public final class BoosterKits implements Listener, AutoCloseable {
                 sender.sendMessage("Launch saved. Booster kits unlock in 24 hours.");
             }catch(Exception ex){plugin.getLogger().log(java.util.logging.Level.SEVERE,"SMP launch failed",ex);sender.sendMessage("The launch could not be saved. Contact an administrator.");}
             return true;
+        });
+        Objects.requireNonNull(plugin.getCommand("smp")).setTabCompleter((sender,command,label,args)->{
+            if(!sender.hasPermission("conquestsmp.launch"))return List.of();
+            String option=args.length==1?"start":args.length==2&&args[0].equalsIgnoreCase("start")?"cancel":"";
+            return !option.isEmpty()&&option.startsWith(args[args.length-1].toLowerCase(Locale.ROOT))?List.of(option):List.of();
         });
         Objects.requireNonNull(plugin.getCommand("kit")).setExecutor((sender,command,label,args)-> {
             if (!(sender instanceof Player p)) { sender.sendMessage("Use this command in game."); return true; }
