@@ -63,7 +63,7 @@ public final class ConquestCombat implements Listener, AutoCloseable {
             for (Player player : plugin.getServer().getOnlinePlayers()) refresh(player);
         }, 1, 2);
         plugin.getLogger().info("Conquest combat enabled: " + tagMillis / 1000
-                + "s PvP tag, " + maceMillis / 1000 + "s post-glide mace lock; pearls prohibited; crystal/anchor player damage blocked.");
+                + "s PvP tag, " + maceMillis / 1000 + "s post-glide mace lock; pearls prohibited; crystal/anchor/bed player damage blocked; TNT minecarts capped at 4 hearts.");
     }
 
     private long expiry(Player player, NamespacedKey key) {
@@ -165,7 +165,6 @@ public final class ConquestCombat implements Listener, AutoCloseable {
         if(event.getEntity() instanceof Player && event.getCause()==EntityDamageEvent.DamageCause.ENTITY_EXPLOSION){
             Entity direct=event.getDamageSource().getDirectEntity();
             if(event instanceof EntityDamageByEntityEvent hit)direct=hit.getDamager();
-            if(direct instanceof org.bukkit.entity.minecart.ExplosiveMinecart){event.setCancelled(true);return;}
             if(direct instanceof TNTPrimed)event.setDamage(event.getDamage()*.5);
         }
         if (event.getEntity() instanceof Player && harmlessExplosion(event)) { event.setCancelled(true); return; }
@@ -184,9 +183,25 @@ public final class ConquestCombat implements Listener, AutoCloseable {
                 && event.getCause() != EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) return false;
         if (event instanceof EntityDamageByEntityEvent hit && hit.getDamager() instanceof EnderCrystal) return true;
         if (event.getDamageSource().getDirectEntity() instanceof EnderCrystal) return true;
-        // Paper retains this snapshot even after the anchor block has become air.
-        return event instanceof EntityDamageByBlockEvent hit && hit.getDamagerBlockState() != null
-                && hit.getDamagerBlockState().getType() == Material.RESPAWN_ANCHOR;
+        // Paper retains this snapshot even after the exploding block has become air.
+        if (event instanceof EntityDamageByBlockEvent hit) {
+            Material type = hit.getDamagerBlockState() != null ? hit.getDamagerBlockState().getType()
+                    : hit.getDamager() != null ? hit.getDamager().getType() : Material.AIR;
+            return type == Material.RESPAWN_ANCHOR || type.name().endsWith("_BED");
+        }
+        return false;
+    }
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void limitExplosions(EntityDamageEvent event) {
+        if (event.isCancelled() || !(event.getEntity() instanceof Player)) return;
+        if (harmlessExplosion(event)) { event.setCancelled(true); return; }
+        if (event.getCause() != EntityDamageEvent.DamageCause.ENTITY_EXPLOSION) return;
+        if (event.getDamageSource().getDirectEntity() instanceof org.bukkit.entity.minecart.ExplosiveMinecart
+                || event instanceof EntityDamageByEntityEvent hit
+                && hit.getDamager() instanceof org.bukkit.entity.minecart.ExplosiveMinecart) {
+            // Four hearts of final health damage per explosion, retaining vanilla reductions.
+            WeaponDamageCaps.cap(event, 8.0);
+        }
     }
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void damaged(EntityDamageByEntityEvent event) {
