@@ -210,4 +210,14 @@ class ConquestCombatTest {
         combat.guardDamage(hit);combat.damaged(hit);assertTrue(hit.isCancelled());assertFalse(combat.tagged(b));
     }
 
+    @Test void tntMinecartsCannotDamagePlayersButKeepMobDamage(){
+        var cart=mock(org.bukkit.entity.minecart.ExplosiveMinecart.class);
+        var playerHit=new EntityDamageByEntityEvent(cart,b,EntityDamageEvent.DamageCause.ENTITY_EXPLOSION,30);combat.guardDamage(playerHit);assertTrue(playerHit.isCancelled());
+        var mobHit=new EntityDamageByEntityEvent(cart,mock(Zombie.class),EntityDamageEvent.DamageCause.ENTITY_EXPLOSION,30);combat.guardDamage(mobHit);assertFalse(mobHit.isCancelled());assertEquals(30,mobHit.getDamage());
+    }
+    @Test void tntPlayerDamageIsHalvedAndCancelledHitsAreUntouched(){
+        var tnt=mock(TNTPrimed.class);var event=new EntityDamageByEntityEvent(tnt,b,EntityDamageEvent.DamageCause.ENTITY_EXPLOSION,30);combat.guardDamage(event);assertFalse(event.isCancelled());assertEquals(15,event.getDamage());
+        var blocked=new EntityDamageByEntityEvent(tnt,b,EntityDamageEvent.DamageCause.ENTITY_EXPLOSION,30);blocked.setCancelled(true);combat.guardDamage(blocked);assertTrue(blocked.isCancelled());assertEquals(30,blocked.getDamage());
+        var mob=new EntityDamageByEntityEvent(tnt,mock(Zombie.class),EntityDamageEvent.DamageCause.ENTITY_EXPLOSION,30);combat.guardDamage(mob);assertEquals(30,mob.getDamage());
+    }
 }

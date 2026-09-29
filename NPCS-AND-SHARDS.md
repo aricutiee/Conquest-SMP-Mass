@@ -1,6 +1,6 @@
 # NPCs, shards and AFK rewards
 
-Version 3.21.0, Paper 1.21.11.
+Version 3.21.1, Paper 1.21.11.
 
 ## Place your NPCs
 
@@ -65,3 +65,6 @@ While eligible inside the AFK zone, a purple boss bar says AFK and counts down t
 NPC decorative items orbit at a radius of 0.85 blocks, centered 1.5 blocks above their feet, with gentle 0.15-block vertical bobbing. Client interpolation smooths each half-second update. Existing locations, types and icons remain unchanged.
 
 Sidebar labels and numbers now match /setword purple (#B477FF). The Conquest SMP heading uses a vertical bitmap gradient, light purple at the top and dark purple at the bottom. This requires accepting the updated server pack; clients without it keep the readable text fallback. The Tab player list is unchanged.
+
+
+3.21.1: TNT minecart explosions do no player damage; ordinary TNT player damage is halved before armor and other defenses. Mob and terrain damage are unchanged.

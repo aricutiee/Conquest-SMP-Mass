@@ -161,6 +161,13 @@ public final class ConquestCombat implements Listener, AutoCloseable {
     }
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void guardDamage(EntityDamageEvent event) {
+        if(event.isCancelled())return;
+        if(event.getEntity() instanceof Player && event.getCause()==EntityDamageEvent.DamageCause.ENTITY_EXPLOSION){
+            Entity direct=event.getDamageSource().getDirectEntity();
+            if(event instanceof EntityDamageByEntityEvent hit)direct=hit.getDamager();
+            if(direct instanceof org.bukkit.entity.minecart.ExplosiveMinecart){event.setCancelled(true);return;}
+            if(direct instanceof TNTPrimed)event.setDamage(event.getDamage()*.5);
+        }
         if (event.getEntity() instanceof Player && harmlessExplosion(event)) { event.setCancelled(true); return; }
         if (event instanceof EntityDamageByEntityEvent hit) {
             if (hit.getDamager() instanceof Player attacker
