@@ -1,6 +1,6 @@
 # Conquest SMP: player and staff guide
 
-Version 3.20.0 | Paper 1.21.11 | Author: ari
+Version 3.21.0 | Paper 1.21.11 | Author: ari
 
 This guide describes the implemented Conquest rules and the installed integrations. It supersedes older release notes where the rules changed. Timings and loot amounts below are the shipped settings unless identified otherwise. Administrators can change configuration, rewards and third-party permissions later.
 
@@ -332,7 +332,7 @@ Use `/setword purple Crates` to create a large, bold small-caps label above you.
 
 # NPCs, shards and AFK rewards
 
-Version 3.20.0, Paper 1.21.11.
+Version 3.21.0, Paper 1.21.11.
 
 ## Place your NPCs
 
@@ -360,7 +360,7 @@ Payment and the pending random result are saved together before the animation. D
 
 Use `/afk`, left-click one corner block, then right-click the opposite corner. The box includes both selected heights, unlike the infinite-height spawn region. This area is separate from spawn and adds no protection. `/afk cancel` cancels selection and `/afk off` disables rewards.
 
-An online, alive, authenticated, non-spectator player in the zone earns one shard every three seconds. Leaving or teleporting resets that interval. There are no offline rewards or catch-up payments.
+An online, alive, authenticated, non-spectator player in the zone earns one shard every ten seconds. Leaving or teleporting resets that interval. There are no offline rewards or catch-up payments.
 
 A credited player kill earns 25 shards. For each attacker/victim pair, only the first three kills in a 72-hour window pay. That window starts with the first rewarded kill and is saved across restarts. Self-kills do not pay. Killing other players uses their separate pair limits.
 
@@ -388,3 +388,12 @@ Sky-word commands use their actual text, not word1. For example `/setword size W
 ## Verification
 
 The complete Gradle build and automated suite pass. New checks cover shard persistence and rollback, paid-reroll recovery and cooldown retention, repeat-victim limits and expiry, AFK timing and height bounds, full-inventory shop rejection, copied scoreboard collision-team restoration, and sky-word text selection and size 50. NPC appearance, menus, in-game animation and multi-client pushing still require a Minecraft client check; they are not claimed as visually verified.
+
+
+## AFK display and visuals, 3.21.0
+
+While eligible inside the AFK zone, a purple boss bar says AFK and counts down to the next shard. A purple action-bar line above the hotbar shows shards earned in this session and elapsed AFK time. Each reward is one shard every ten seconds of elapsed time. Leaving, teleporting, dying, disconnecting, disabling/replacing the zone or stopping the plugin ends the session and removes its display. Spectators and unauthenticated players do not earn. A delayed server tick awards at most one shard, with no catch-up burst. Only successfully saved rewards count toward session earnings.
+
+NPC decorative items orbit at a radius of 0.85 blocks, centered 1.5 blocks above their feet, with gentle 0.15-block vertical bobbing. Client interpolation smooths each half-second update. Existing locations, types and icons remain unchanged.
+
+Sidebar labels and numbers now match /setword purple (#B477FF). The Conquest SMP heading uses a vertical bitmap gradient, light purple at the top and dark purple at the bottom. This requires accepting the updated server pack; clients without it keep the readable text fallback. The Tab player list is unchanged.

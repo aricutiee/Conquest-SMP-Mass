@@ -16,7 +16,7 @@ final class SurvivalSidebar implements AutoCloseable {
     private final Map<UUID,View> views=new HashMap<>();
     private final NamespacedKey streak;
     private final Predicate<Player> customIcons;
-    private static final TextColor PURPLE = TextColor.color(0xE1CBFF);
+    private static final TextColor PURPLE = TextColor.color(0xB477FF);
     private static final Key ICON_FONT = Key.key("turtleroles:stats");
     private static final Key SIDEBAR_FONT = Key.key("turtleroles:sidebar");
     private static final int LINE_COUNT = 12;
@@ -35,6 +35,7 @@ final class SurvivalSidebar implements AutoCloseable {
         View view=views.computeIfAbsent(player.getUniqueId(),id->create(player));
         if(player.getScoreboard()!=view.board)return;
         boolean icons=customIcons.test(player);
+        view.objective.displayName(title(icons));
         Component rule=Component.text("------------------",PURPLE).decorate(TextDecoration.STRIKETHROUGH);
         Component[] lines={heading("COMBAT",icons),rule,
                 stat(0,"Kills",Integer.toString(player.getStatistic(Statistic.PLAYER_KILLS)),icons),
@@ -80,7 +81,8 @@ final class SurvivalSidebar implements AutoCloseable {
         int b=(int)Math.round((from&255)*(1-fraction)+(to&255)*fraction);
         return TextColor.color(r,g,b);
     }
-    private static Component title() {
+    static Component title(boolean custom) {
+        if(custom)return Component.text("CONQUEST SMP",TextColor.color(0xFFFFFF)).font(Key.key("turtleroles:sidebar_title")).decorate(TextDecoration.BOLD);
         String text=smallCaps("CONQUEST SMP");
         Component result=Component.empty().decorate(TextDecoration.BOLD);
         for(int i=0;i<text.length();i++)result=result.append(Component.text(String.valueOf(text.charAt(i)),blend(0x29143D,0xB78AFF,i/(double)(text.length()-1))));
@@ -94,7 +96,7 @@ final class SurvivalSidebar implements AutoCloseable {
             for(Team.Option option:Team.Option.values())team.setOption(option,original.getOption(option));
             original.getEntries().forEach(team::addEntry);
         }
-        Objective objective=board.registerNewObjective("cq_survival",Criteria.DUMMY,title());
+        Objective objective=board.registerNewObjective("cq_survival",Criteria.DUMMY,title(customIcons.test(player)));
         objective.numberFormat(io.papermc.paper.scoreboard.numbers.NumberFormat.blank());
         List<Team> lines=new ArrayList<>();
         for(int i=0;i<LINE_COUNT;i++) {

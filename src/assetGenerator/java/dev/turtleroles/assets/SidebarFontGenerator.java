@@ -31,7 +31,7 @@ final class SidebarFontGenerator {
         "0/1/0/1/0", "000/000/111/000/000"
     };
     static int ink() {
-        return 0xFFE1CBFF;
+        return 0xFFB477FF;
     }
     static void write(Path textures,Path fonts,Path previews) throws IOException {
         BufferedImage atlas=new BufferedImage(16*6,3*8,BufferedImage.TYPE_INT_ARGB);
@@ -52,6 +52,14 @@ final class SidebarFontGenerator {
             chars.append('"');
         }
         Files.writeString(fonts.resolve("sidebar.json"),"{\"providers\":[{\"type\":\"space\",\"advances\":{\" \":3}},{\"type\":\"bitmap\",\"file\":\"turtleroles:font/sidebar.png\",\"height\":8,\"ascent\":7,\"chars\":["+chars+"]}]}\n");
+        BufferedImage title=new BufferedImage(atlas.getWidth(),atlas.getHeight(),BufferedImage.TYPE_INT_ARGB);
+        for(int y=0;y<atlas.getHeight();y++)for(int x=0;x<atlas.getWidth();x++)if((atlas.getRGB(x,y)>>>24)!=0){
+            double f=Math.clamp(((y%8)-2)/4.0,0,1);int top=0xB78AFF,bottom=0x29143D;
+            int red=(int)Math.round(((top>>16)&255)*(1-f)+((bottom>>16)&255)*f),green=(int)Math.round(((top>>8)&255)*(1-f)+((bottom>>8)&255)*f),blue=(int)Math.round((top&255)*(1-f)+(bottom&255)*f);
+            title.setRGB(x,y,0xFF000000|(red<<16)|(green<<8)|blue);
+        }
+        ImageIO.write(title,"png",textures.resolve("sidebar_title.png").toFile());
+        Files.writeString(fonts.resolve("sidebar_title.json"),Files.readString(fonts.resolve("sidebar.json")).replace("sidebar.png","sidebar_title.png"));
         String[] demo={"COMBAT","KILLS: 12","DEATHS: 3","STREAK: 4","OTHER","PING: 42MS","PLAYTIME: 2D 7H"};
         BufferedImage preview=new BufferedImage(110*6,demo.length*10*6,BufferedImage.TYPE_INT_ARGB);
         var g=preview.createGraphics();g.setColor(new java.awt.Color(0x202028));g.fillRect(0,0,preview.getWidth(),preview.getHeight());

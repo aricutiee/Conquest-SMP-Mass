@@ -49,15 +49,18 @@ public final class SpawnNpcs implements Listener,CommandExecutor,TabCompleter,Au
   Location l=location(k);Actor a=actors.get(k);if(l==null||!l.isChunkLoaded()){clear(k);continue;}
   if(a==null||!a.body.isValid()||a.decorations.stream().anyMatch(e->!e.isValid())){clear(k);a=create(k,l);actors.put(k,a);entities.put(a.body.getUniqueId(),k);}
   a.body.setVelocity(new org.bukkit.util.Vector());if(a.body.getLocation().distanceSquared(l)>.01){relocating=true;try{a.body.teleport(l);}finally{relocating=false;}}
+  int itemIndex=0;double seconds=System.nanoTime()/1_000_000_000.0;
+  for(Entity decoration:a.decorations)if(decoration instanceof ItemDisplay item){double phase=seconds*.65+itemIndex++*Math.PI;item.teleport(orbit(l,phase,seconds));}
   Player nearest=null;double best=36;for(Player p:l.getWorld().getPlayers()){double d=p.getLocation().distanceSquared(l);if(d<best){best=d;nearest=p;}}
   if(nearest!=null){var direction=nearest.getEyeLocation().toVector().subtract(a.body.getEyeLocation().toVector());Location facing=l.clone().setDirection(direction);a.body.setRotation(facing.getYaw(),Math.clamp(facing.getPitch(),-35,35));}
  }}
+ static Location orbit(Location anchor,double phase,double seconds){return anchor.clone().add(Math.cos(phase)*.85,1.5+Math.sin(seconds*1.6+phase)*.15,Math.sin(phase)*.85);}
  private Actor create(Kind k,Location l){List<Entity> decorations=new ArrayList<>();Villager body=l.getWorld().spawn(l,Villager.class,v->{v.setAI(false);v.setAdult();v.setInvulnerable(true);v.setSilent(true);v.setGravity(false);v.setCollidable(false);v.setPersistent(false);v.setRemoveWhenFarAway(false);v.setCanPickupItems(false);v.setProfession(switch(k){case utilities->Villager.Profession.TOOLSMITH;case discord->Villager.Profession.CLERIC;case races->Villager.Profession.LIBRARIAN;case rtp->Villager.Profession.CARTOGRAPHER;case reroll->Villager.Profession.ARMORER;});v.setVillagerType(k==Kind.utilities?Villager.Type.SNOW:Villager.Type.PLAINS);});
   try{
    TextDisplay text=l.getWorld().spawn(l.clone().add(0,2.5,0),TextDisplay.class,e->{e.setPersistent(false);e.setInvulnerable(true);e.setGravity(false);e.setBillboard(Display.Billboard.CENTER);e.setBrightness(new Display.Brightness(15,15));e.setSeeThrough(false);e.setDefaultBackground(false);e.setBackgroundColor(Color.fromARGB(0));e.setShadowed(true);e.setLineWidth(280);
     e.text(label(data.getString(k+".title"),color(k)).decorate(TextDecoration.BOLD).append(Component.newline()).append(label(data.getString(k+".description"),NamedTextColor.WHITE)).append(Component.newline()).append(label("→ interact ←",color(k)).decorate(TextDecoration.BOLD)));});decorations.add(text);
    Material icon=switch(k){case utilities->Material.WIND_CHARGE;case discord->Material.AMETHYST_SHARD;case races->Material.BOOK;case rtp->Material.COMPASS;case reroll->Material.NETHER_STAR;};
-   for(int side:new int[]{-1,1}){ItemDisplay item=l.getWorld().spawn(l.clone().add(side*.85,1.5,0),ItemDisplay.class,e->{e.setPersistent(false);e.setInvulnerable(true);e.setGravity(false);e.setBrightness(new Display.Brightness(15,15));e.setBillboard(Display.Billboard.CENTER);e.setItemStack(new ItemStack(icon));e.setTransformationMatrix(new Matrix4f().scaling(.5f));});decorations.add(item);}
+   for(int side:new int[]{-1,1}){ItemDisplay item=l.getWorld().spawn(l.clone().add(side*.85,1.5,0),ItemDisplay.class,e->{e.setPersistent(false);e.setInvulnerable(true);e.setGravity(false);e.setBrightness(new Display.Brightness(15,15));e.setBillboard(Display.Billboard.CENTER);e.setTeleportDuration(10);e.setItemStack(new ItemStack(icon));e.setTransformationMatrix(new Matrix4f().scaling(.5f));});decorations.add(item);}
    return new Actor(body,decorations);
   }catch(RuntimeException e){body.remove();decorations.forEach(Entity::remove);throw e;}
  }
