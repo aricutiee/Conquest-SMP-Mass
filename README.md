@@ -1,8 +1,8 @@
 # Conquest SMP Mass
 
-Paper 1.21.11 server plugin, maintained by ari. Requires Java 21. Current release: **3.24.2**.
+Paper 1.21.11 server plugin, maintained by ari. Requires Java 21. Current release: **3.24.3**.
 
-This update adds staff action-history menus, a two-totem carrying limit and a 60-second enchanted golden apple cooldown. It also simplifies anti-cheat inspection, integrates ModDetector reports, brands in-game plugin listings, and adds Happy Ghast combat rules and mutual chat truces. Read [the update guide](UPDATE-3.24.2.md) and [the preceding changes](UPDATE-3.24.1.md).
+This update adds a clickable, paginated catalog of 51 custom Conquest systems, descriptions and Ari attribution. It also adds owner-only packet-based simulated tab profiles and AFK bodies. See [the update guide](UPDATE-3.24.3.md) and [the feature catalog](CONQUEST-SYSTEMS.md).
 
 ## Build
 
@@ -22,7 +22,7 @@ King's Crown remains a separate optional integration. GrimAC, Floodgate, Geyser,
 
 ## Verification
 
-Automated checks cover races, combat, staff restrictions, rewards, spawn, dragon rules and RTP border/landing rules. A successful build is not a claim that every behavior has been exercised by a Minecraft client. Version 3.24.2 passed 362 automated tests and loaded on the live Paper 1.21.11 server on September 29, 2026. The preceding 3.24.1 inspection report was exercised through the live console. Real-client menus, rendering and gameplay require in-game verification. See [deployment verification](DEPLOYMENT-3.24.2.md).
+Automated checks cover races, combat, staff restrictions, rewards, spawn, dragon rules and RTP border/landing rules. A successful build is not a claim that every behavior has been exercised by a Minecraft client. Version 3.24.3 passed 368 automated tests and loaded on the live Paper 1.21.11 server on September 29, 2026. The preceding 3.24.1 inspection report was exercised through the live console. Real-client menus, rendering and gameplay require in-game verification. See [deployment verification](DEPLOYMENT-3.24.3.md).
 
 ## Related projects
 

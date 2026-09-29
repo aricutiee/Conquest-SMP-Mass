@@ -16,9 +16,20 @@ class ConquestPluginListTest {
             var player=mock(Player.class);when(player.isOp()).thenReturn(op);
             var event=new PlayerCommandPreprocessEvent(player,command,new HashSet<>());
             new ConquestPluginList().command(event);
-            assertTrue(event.isCancelled(),command);verify(player,times(2)).sendMessage(any(Component.class));
+            assertTrue(event.isCancelled(),command);verify(player,atLeast(3)).sendMessage(any(Component.class));
         }
         assertFalse(ConquestPluginList.matches("/playsound test"));
+    }
+    @Test void everyFeatureHasUniqueClickableDetailsAndAuthor() {
+        Set<String> ids=new HashSet<>();
+        for(var module:ConquestPluginList.MODULES) {
+            assertTrue(ids.add(module.id()));assertFalse(module.description().isBlank());
+            assertEquals("/plugins info "+module.id(),ConquestPluginList.link(module).clickEvent().value());
+            var player=mock(Player.class);var event=new PlayerCommandPreprocessEvent(player,"/plugins info "+module.id(),new HashSet<>());
+            new ConquestPluginList().command(event);assertTrue(event.isCancelled());
+            var messages=org.mockito.ArgumentCaptor.forClass(Component.class);verify(player,times(4)).sendMessage(messages.capture());
+            assertTrue(net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(messages.getAllValues().get(2)).contains("Author: Ari"));
+        }
     }
     @Test void completionFilteringLeavesConsoleDiagnosticsAvailable() {
         var handler=new ConquestPluginList();
