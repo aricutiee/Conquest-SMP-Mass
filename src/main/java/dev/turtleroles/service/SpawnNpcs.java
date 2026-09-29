@@ -43,7 +43,7 @@ public final class SpawnNpcs implements Listener,CommandExecutor,TabCompleter,Au
  public void start(){Bukkit.getPluginManager().registerEvents(this,plugin);var c=Objects.requireNonNull(plugin.getCommand("npc"));c.setExecutor(this);c.setTabCompleter(this);rewards.start();task=Bukkit.getScheduler().runTaskTimer(plugin,this::tick,1,10);}
  private static Component label(String text,TextColor color){return Component.text(ConquestMotd.smallCaps(text),color).decoration(TextDecoration.ITALIC,false);}
  private TextColor color(Kind kind){TextColor color=SkyWords.color(data.getString(kind+".color","purple"));return color==null?TextColor.color(0xB477FF):color;}
- private Location location(Kind kind){String k=kind+".location.";String world=data.getString(k+"world");if(world==null)return null;try{World w=Bukkit.getWorld(UUID.fromString(world));return w==null?null:new Location(w,data.getDouble(k+"x"),data.getDouble(k+"y"),data.getDouble(k+"z"),(float)data.getDouble(k+"yaw"),0);}catch(IllegalArgumentException ex){return null;}}
+ Location location(Kind kind){String k=kind+".location.";String world=data.getString(k+"world");if(world==null)return null;try{World w=Bukkit.getWorld(UUID.fromString(world));return w==null?null:new Location(w,data.getDouble(k+"x"),data.getDouble(k+"y"),data.getDouble(k+"z"),(float)data.getDouble(k+"yaw"),0);}catch(IllegalArgumentException ex){return null;}}
  private void clear(Kind k){Actor a=actors.remove(k);if(a!=null){entities.remove(a.body.getUniqueId());a.remove();}}
  private void tick(){for(Kind k:Kind.values()){
   Location l=location(k);Actor a=actors.get(k);if(l==null||!l.isChunkLoaded()){clear(k);continue;}
@@ -98,7 +98,11 @@ public final class SpawnNpcs implements Listener,CommandExecutor,TabCompleter,Au
   Map<Integer,ItemStack> old=new HashMap<>();for(int i=0;i<45;i++){old.put(i,stock(i));data.set("shop."+i+".item",e.getInventory().getItem(i));}if(!save()){old.forEach((i,item)->data.set("shop."+i+".item",item));e.getPlayer().sendMessage("Shop stock could not be saved.");}else e.getPlayer().sendMessage("Shop stock saved. Set shard prices with /npc edit utilities price <slot 1-45> <amount>.");
  }
  private boolean save(){try{AtomicYaml.save(data,file);return true;}catch(Exception e){plugin.getLogger().warning("Could not save NPCs: "+e.getMessage());return false;}}
- private boolean set(String path,Object value){Object old=data.get(path);data.set(path,value);if(save())return true;data.set(path,old);return false;}
+ private void writeValue(String path,Object value){
+  // Bukkit set(path, Map) leaves an opaque map; nested getters need a section.
+  if(value instanceof Map<?,?> map)data.createSection(path,map);else data.set(path,value);
+ }
+ private boolean set(String path,Object value){Object old=data.get(path);if(old instanceof org.bukkit.configuration.ConfigurationSection section)old=new LinkedHashMap<>(section.getValues(false));writeValue(path,value);if(save())return true;writeValue(path,old);return false;}
  private void edit(Player p,Kind k){if(k==Kind.utilities){if(editor!=null){p.sendMessage("Another stock editor is already open.");return;}Menu m=menu(p,"stock",45,"Edit Utilities Stock");for(int i=0;i<45;i++)m.inventory.setItem(i,stock(i));editor=p.getUniqueId();p.openInventory(m.inventory);p.sendMessage("Arrange the items for sale, then close to save. Items are templates. Prices are per displayed stack.");}
   else{Menu m=menu(p,"edit",27,"Edit "+data.getString(k+".title"));m.inventory.setItem(13,item(Material.WRITABLE_BOOK,"NPC editing commands",color(k),List.of(lore("/npc edit "+k+" title <text>"),lore("/npc edit "+k+" description <text>"),lore("/npc edit "+k+" color <color>"),lore("/npc set "+k+" to move here"),lore("/npc remove "+k))));p.openInventory(m.inventory);}}
  @Override public boolean onCommand(CommandSender s,Command c,String label,String[] a){if(!ShardRewards.admin(plugin,s)){s.sendMessage("Only administrators can edit NPCs.");return true;}if(a.length==1&&a[0].equalsIgnoreCase("list")){for(Kind k:Kind.values())s.sendMessage(k+": "+data.getString(k+".title")+(data.contains(k+".location")?" (placed)":" (not placed)"));return true;}
