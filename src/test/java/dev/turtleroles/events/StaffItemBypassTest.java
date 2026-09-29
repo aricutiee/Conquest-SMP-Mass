@@ -18,7 +18,7 @@ class StaffItemBypassTest {
         player.setOp(true);
         for(Role role:Role.values()){
             when(roles.roleOf(player.getUniqueId())).thenReturn(role);
-            assertEquals(java.util.Set.of(Role.ADMIN,Role.SR_ADMIN,Role.CO_OWNER,Role.OWNER).contains(role),GameplayBypass.allowed(plugin,player));
+            assertEquals(java.util.Set.of(Role.MODERATOR,Role.SSER,Role.ADMIN,Role.SR_ADMIN,Role.CO_OWNER,Role.OWNER).contains(role),GameplayBypass.allowed(plugin,player));
         }
     }
     @Test void adminCanDepositRewardAndKeepEnderRewardButSserCannot(){
@@ -27,7 +27,7 @@ class StaffItemBypassTest {
         when(click.getClickedInventory()).thenReturn(top);when(click.getCursor()).thenReturn(new ItemStack(Material.DRAGON_EGG));when(click.getAction()).thenReturn(InventoryAction.PLACE_ALL);when(click.getHotbarButton()).thenReturn(-1);
         when(roles.roleOf(player.getUniqueId())).thenReturn(Role.ADMIN);guard.click(click);verify(click,never()).setCancelled(true);
         player.getEnderChest().setItem(0,new ItemStack(Material.DRAGON_EGG));guard.evict(player,player.getEnderChest());assertNotNull(player.getEnderChest().getItem(0));
-        when(roles.roleOf(player.getUniqueId())).thenReturn(Role.SSER);guard.click(click);verify(click).setCancelled(true);guard.evict(player,player.getEnderChest());assertNull(player.getEnderChest().getItem(0));
+        when(roles.roleOf(player.getUniqueId())).thenReturn(Role.HELPER);guard.click(click);verify(click).setCancelled(true);guard.evict(player,player.getEnderChest());assertNull(player.getEnderChest().getItem(0));
     }
     @Test void adminCanRenameCustomItemWithoutRemovingItsIdentity(){
         var rule=new CustomItemNames(plugin);var input=new ItemStack(Material.DRAGON_EGG);var output=input.clone();var meta=output.getItemMeta();meta.displayName(net.kyori.adventure.text.Component.text("Test egg"));output.setItemMeta(meta);
@@ -44,7 +44,7 @@ class StaffItemBypassTest {
         try(var rule=new NetheriteArmorRule(plugin,p->false)){
             when(roles.roleOf(player.getUniqueId())).thenReturn(Role.ADMIN);
             player.getInventory().setHelmet(new ItemStack(Material.NETHERITE_HELMET));rule.enforce(player);assertNotNull(player.getInventory().getHelmet());
-            when(roles.roleOf(player.getUniqueId())).thenReturn(Role.SSER);rule.enforce(player);assertNull(player.getInventory().getHelmet());assertTrue(player.getInventory().contains(Material.NETHERITE_HELMET));
+            when(roles.roleOf(player.getUniqueId())).thenReturn(Role.HELPER);rule.enforce(player);assertNull(player.getInventory().getHelmet());assertTrue(player.getInventory().contains(Material.NETHERITE_HELMET));
         }
     }
 }

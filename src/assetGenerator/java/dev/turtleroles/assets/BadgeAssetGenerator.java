@@ -30,6 +30,11 @@ public final class BadgeAssetGenerator {
         new RoleArt("media", "MEDIA", 0xE009, "media.png", new int[]{0xBD188F, 0xFF45C5, 0xFFA6E8}, false),
         new RoleArt("booster_x2", "BOOSTER X2", 0xE00C, "booster_x2.png", new int[]{0x542080, 0x9747D9, 0xDBB0FF}, false),
         new RoleArt("booster", "BOOSTER", 0xE00B, "booster.png", new int[]{0x542080, 0x9747D9, 0xDBB0FF}, false),
+        new RoleArt("coal", "COAL", 0xE00D, "coal.png", new int[]{0x303038, 0x555560, 0x92929C}, false),
+        new RoleArt("iron", "IRON", 0xE00E, "iron.png", new int[]{0x777780, 0xBBBBCC, 0xEEEEFF}, false),
+        new RoleArt("redstone", "REDSTONE", 0xE00F, "redstone.png", new int[]{0x750D18, 0xD82838, 0xFF727C}, false),
+        new RoleArt("diamond", "DIAMOND", 0xE010, "diamond.png", new int[]{0x146D80, 0x32C9DE, 0xA0F4FF}, false),
+        new RoleArt("netherite", "NETHERITE", 0xE011, "netherite.png", new int[]{0x302636, 0x635069, 0xAE90B8}, false),
         new RoleArt("member", "MEMBER", 0xE007, "member.png", new int[]{0x454B55, 0x626975, 0xAEB5C0}, false),
         new RoleArt("king", "KING", 0xE008, "king.png", new int[]{0x9B5C00, 0xF0AD20, 0xFFE784}, false)
     );

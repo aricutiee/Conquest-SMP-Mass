@@ -64,7 +64,7 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
                 sidebar.refresh(player);
             }
         }, 20, 20);
-        plugin.getLogger().info("Conquest survival: homes 5/6/10, selected spawn protection, dimension controls and purple sidebar enabled.");
+        plugin.getLogger().info("Conquest survival: rank-based home limits, selected spawn protection, dimension controls and purple sidebar enabled.");
     }
     private void border(World world) {
         if (world.getEnvironment() == World.Environment.CUSTOM) return;
@@ -87,7 +87,7 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
         };
     }
     static int homeLimit(Role role) {
-        return role.weight() >= Role.SSER.weight() ? 10 : role.weight() >= Role.MEDIA.weight() ? 6 : 5;
+        return switch(role) { case COAL, BOOSTER -> 4; case IRON -> 6; case REDSTONE -> 8; case DIAMOND -> 13; case NETHERITE -> 23; case BOOSTER_X2 -> 7; case MEMBER -> 2; default -> role.weight()>=Role.MODERATOR.weight() ? 10 : 6; };
     }
     private boolean admin(Player player) {
         return plugin.roleService().effectiveRoleOf(player.getUniqueId()).weight() >= Role.ADMIN.weight()
@@ -134,7 +134,7 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
                 } else {
                     Location previous = data.getLocation(path);
                     if (command.getName().equals("sethome")) {
-                        int limit = homeLimit(plugin.roleService().effectiveRoleOf(player.getUniqueId()));
+                        int limit = Math.max(homeLimit(plugin.roleService().effectiveRoleOf(player.getUniqueId())), plugin.roleService().boosterTier(player.getUniqueId())==2?7:plugin.roleService().boosterTier(player.getUniqueId())==1?4:2);
                         if (!bypass(player) && previous == null && homes.size() >= limit) { message(player,"Your rank can set "+limit+" homes. Use /delhome <name> first."); return true; }
                         if (!allowed(player,player.getWorld())) { message(player,"This dimension is closed."); return true; }
                         data.set(path,player.getLocation());
@@ -146,7 +146,7 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
                     else message(player,command.getName().equals("sethome") ? "Home '"+name+"' saved." : "Home '"+name+"' removed.");
                 }
             }
-            case "homes" -> message(player,"Homes ("+homes.size()+"/"+(bypass(player)?"unlimited":homeLimit(plugin.roleService().effectiveRoleOf(player.getUniqueId())))+"): "+String.join(", ",homes)+". Use /home <name>.");
+            case "homes" -> message(player,"Homes ("+homes.size()+"/"+(bypass(player)?"unlimited":Math.max(homeLimit(plugin.roleService().effectiveRoleOf(player.getUniqueId())), plugin.roleService().boosterTier(player.getUniqueId())==2?7:plugin.roleService().boosterTier(player.getUniqueId())==1?4:2))+"): "+String.join(", ",homes)+". Use /home <name>.");
             case "spawn", "worldspawn" -> {
                 if(command.getName().equals("spawn")&&args.length>0&&(name.equals("area")||name.equals("border")))spawnArea.command(player,args);
                 else teleport(player,spawn(),false);

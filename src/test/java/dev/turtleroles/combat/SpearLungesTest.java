@@ -63,7 +63,7 @@ class SpearLungesTest {
         when(plugin.getServer()).thenReturn(server);when(plugin.roleService()).thenReturn(roles);
         when(roles.roleOf(player.getUniqueId())).thenReturn(dev.turtleroles.role.Role.ADMIN);
         lunges=new SpearLunges(plugin,config,now::get);lunges.refresh(player);assertEquals(1,gate());
-        when(roles.roleOf(player.getUniqueId())).thenReturn(dev.turtleroles.role.Role.SSER);lunges.refresh(player);assertEquals(0,gate());
+        when(roles.roleOf(player.getUniqueId())).thenReturn(dev.turtleroles.role.Role.HELPER);lunges.refresh(player);assertEquals(0,gate());
     }
 
 }

@@ -61,9 +61,9 @@ public final class NicknameService implements Listener, CommandExecutor, TabComp
             }
         },20,20);
     }
-    public static boolean eligible(Role role, boolean op) { return op||role.weight()>=Role.BOOSTER.weight(); }
+    public static boolean eligible(Role role, boolean op) { return op||role.weight()>=Role.IRON.weight(); }
     public static boolean validName(String name) { return name!=null&&name.matches("[A-Za-z0-9_]{3,16}"); }
-    private boolean allowed(Player p) { return eligible(plugin.roleService().roleOf(p.getUniqueId()),p.isOp()); }
+    private boolean allowed(Player p) { return eligible(plugin.roleService().roleOf(p.getUniqueId()),p.isOp()) || plugin.roleService().boosterTier(p.getUniqueId())>0; }
     private boolean staff(CommandSender s) { return !(s instanceof Player p)||p.isOp()||plugin.roleService().roleOf(p.getUniqueId()).isStaff(); }
     String realName(Player p) { var original=originals.get(p.getUniqueId());return original==null?p.getName():original.name(); }
 

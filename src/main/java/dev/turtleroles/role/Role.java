@@ -18,6 +18,11 @@ public enum Role {
     MEDIA("media", "MEDIA", 150, "\uE009", "media.png", new String[]{"#BD188F", "#FF45C5", "#FFA6E8"}),
     BOOSTER_X2("booster_x2", "BOOSTER X2", 130, "\uE00C", "booster_x2.png", new String[]{"#542080", "#9747D9", "#DBB0FF"}),
     BOOSTER("booster", "BOOSTER", 125, "\uE00B", "booster.png", new String[]{"#542080", "#9747D9", "#DBB0FF"}),
+    NETHERITE("netherite", "NETHERITE", 114, "\uE011", "netherite.png", new String[]{"#302636", "#635069", "#AE90B8"}),
+    DIAMOND("diamond", "DIAMOND", 113, "\uE010", "diamond.png", new String[]{"#146D80", "#32C9DE", "#A0F4FF"}),
+    REDSTONE("redstone", "REDSTONE", 112, "\uE00F", "redstone.png", new String[]{"#750D18", "#D82838", "#FF727C"}),
+    IRON("iron", "IRON", 111, "\uE00E", "iron.png", new String[]{"#777780", "#BBBBCC", "#EEEEFF"}),
+    COAL("coal", "COAL", 110, "\uE00D", "coal.png", new String[]{"#303038", "#555560", "#92929C"}),
     MEMBER("member", "MEMBER", 100, "\uE007", "member.png", new String[]{"#454B55", "#626975", "#AEB5C0"});
 
     private static final Map<String, Role> BY_ID = Arrays.stream(values())
@@ -72,7 +77,7 @@ public enum Role {
     }
 
     public boolean canManageRoles() {
-        return weight >= SSER.weight;
+        return weight >= MODERATOR.weight;
     }
 
     public static Optional<Role> byId(String id) {

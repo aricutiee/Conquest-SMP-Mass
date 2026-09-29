@@ -123,6 +123,7 @@ public final class PresentationService {
             case MODERATOR -> TextColor.color(0x41CE70);
             case HELPER -> TextColor.color(0xFFE477);
             case MEDIA -> TextColor.color(0xFF45C5);
+            case COAL, IRON, REDSTONE, DIAMOND, NETHERITE -> TextColor.fromHexString(role.palette()[1]);
             case MEMBER -> TextColor.color(0xAEB5C0);
             case BOOSTER, BOOSTER_X2 -> TextColor.color(0xB778F0);
             case OWNER, SSER -> TextColor.color(0xFFFFFF);

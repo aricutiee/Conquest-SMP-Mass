@@ -34,15 +34,15 @@ final class SpawnProtection implements Listener {
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true) public void fertilize(BlockFertilizeEvent e){if(module.bypass(e.getPlayer()))return;if(e.getBlocks().stream().anyMatch(b->protectedAt(b.getBlock())))e.setCancelled(true);}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true) public void interact(PlayerInteractEvent e){if(module.bypass(e.getPlayer()))return;
         if(e.getClickedBlock()==null||!protectedAt(e.getClickedBlock()))return;
+        e.setUseInteractedBlock(Event.Result.DENY);
         if(e.getAction()==Action.PHYSICAL)e.setCancelled(true);
-        else if(e.getAction().isRightClick()) {
-            String item=e.getItem()==null?"":e.getItem().getType().name();
-            String block=e.getClickedBlock().getType().name();
-            if(item.endsWith("_AXE")||item.endsWith("_HOE")||item.endsWith("_SHOVEL")||item.equals("SHEARS")||item.equals("FLINT_AND_STEEL")
-                    ||item.endsWith("_BUCKET")||item.equals("BONE_MEAL")||item.equals("FIRE_CHARGE")||item.equals("END_CRYSTAL")
-                    ||item.endsWith("_DYE")||item.equals("HONEYCOMB")||block.equals("RESPAWN_ANCHOR"))e.setCancelled(true);
-        }
     }
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true) public void container(org.bukkit.event.inventory.InventoryOpenEvent e) {
+        if(module.bypass(e.getPlayer()))return;
+        Location l=e.getInventory().getLocation();
+        if(l!=null&&module.spawnArea().inside(l))e.setCancelled(true);
+    }
+
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true) public void spread(BlockSpreadEvent e){if(protectedAt(e.getBlock()))e.setCancelled(true);}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true) public void dispenser(BlockDispenseEvent e){if(protectedAt(e.getBlock())||protectedAt(e.getBlock().getRelative((e.getBlock().getBlockData() instanceof org.bukkit.block.data.Directional d?d.getFacing():org.bukkit.block.BlockFace.SELF))))e.setCancelled(true);}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true) public void armor(PlayerArmorStandManipulateEvent e){if(module.bypass(e.getPlayer()))return;if(protectedAt(e.getRightClicked().getLocation().getBlock()))e.setCancelled(true);}

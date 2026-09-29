@@ -63,7 +63,7 @@ class ExpandedEnderChestsTest {
         var ender=new ExpandedEnderChests(plugin);ender.command(new PlayerCommandPreprocessEvent(player,"/ec"));
         assertEquals(54,player.getOpenInventory().getTopInventory().getSize());
         var opened=new org.bukkit.event.inventory.InventoryOpenEvent(player.getOpenInventory());ender.opening(opened);assertFalse(opened.isCancelled());
-        when(roles.roleOf(player.getUniqueId())).thenReturn(dev.turtleroles.role.Role.SSER);ender.opening(opened);assertTrue(opened.isCancelled());
+        when(roles.roleOf(player.getUniqueId())).thenReturn(dev.turtleroles.role.Role.HELPER);ender.opening(opened);assertTrue(opened.isCancelled());
     }
 
 }

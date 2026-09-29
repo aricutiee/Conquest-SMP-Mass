@@ -23,19 +23,28 @@ class OperatorRoleTest {
     @TempDir
     Path tempDir;
 
+    @Test void boosterBenefitSurvivesReloadAndCanBeRemoved()throws Exception{
+        UUID id=UUID.randomUUID();try(SQLiteDatabase db=new SQLiteDatabase(tempDir.resolve("benefits.db"))){
+            db.open();var repo=new PlayerRepository(db);repo.upsertKnownPlayer(id,"DiamondPlayer");
+            Plugin plugin=mock(Plugin.class);when(plugin.getDataFolder()).thenReturn(tempDir.toFile());
+            var service=new RoleService(plugin,repo);service.setBooster(id,2);
+            var reload=new RoleService(plugin,repo);assertEquals(2,reload.boosterTier(id));assertEquals(Role.MEMBER,reload.roleOf(id));
+            reload.setBooster(id,0);assertEquals(0,new RoleService(plugin,repo).boosterTier(id));
+        }
+    }
     @Test
-    void directOpHasOwnerLevelWithoutChangingStoredRole() throws Exception {
+    void directOpCannotBecomeOwner() throws Exception {
         UUID uuid = UUID.randomUUID();
         try (SQLiteDatabase database = new SQLiteDatabase(tempDir.resolve("operators.db"))) {
             database.open();
             PlayerRepository players = new PlayerRepository(database);
             players.upsertKnownPlayer(uuid, "Operator");
-            RoleService roles = new RoleService(mock(Plugin.class), players);
+            Plugin plugin=mock(Plugin.class);when(plugin.getDataFolder()).thenReturn(tempDir.toFile());RoleService roles = new RoleService(plugin, players);
             Player player = mock(Player.class);
             when(player.isOp()).thenReturn(true, false);
             try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
                 bukkit.when(() -> Bukkit.getPlayer(uuid)).thenReturn(player);
-                assertEquals(Role.OWNER, roles.effectiveRoleOf(uuid));
+                assertEquals(Role.MEMBER, roles.effectiveRoleOf(uuid));
                 assertEquals(Role.MEMBER, players.findByUuid(uuid).orElseThrow().role());
                 assertEquals(Role.MEMBER, roles.effectiveRoleOf(uuid));
             }

@@ -16,11 +16,11 @@ import java.util.*;
 public final class ShardRewards implements Listener,CommandExecutor,AutoCloseable {
  private final TurtleRolesPlugin plugin;private final Path file;private YamlConfiguration data;
  private final Set<UUID> selecting=new HashSet<>();private final Map<UUID,Location> first=new HashMap<>();
- private static final long INTERVAL=10_000;
+ static long interval(int tier){return tier>=2?10_000:tier==1?20_000:30_000;}
  private static final net.kyori.adventure.text.format.TextColor PURPLE=net.kyori.adventure.text.format.TextColor.color(0xB477FF);
  private static final class Session {
-  final long started;long next,earned;final net.kyori.adventure.bossbar.BossBar bar;
-  Session(long now){started=now;next=now+INTERVAL;bar=net.kyori.adventure.bossbar.BossBar.bossBar(net.kyori.adventure.text.Component.empty(),1,net.kyori.adventure.bossbar.BossBar.Color.PURPLE,net.kyori.adventure.bossbar.BossBar.Overlay.PROGRESS);}
+  final long started;long next,earned,interval;final net.kyori.adventure.bossbar.BossBar bar;
+  Session(long now,long interval){this.interval=interval;started=now;next=now+interval;bar=net.kyori.adventure.bossbar.BossBar.bossBar(net.kyori.adventure.text.Component.empty(),1,net.kyori.adventure.bossbar.BossBar.Color.PURPLE,net.kyori.adventure.bossbar.BossBar.Overlay.PROGRESS);}
  }
  private final Map<UUID,Session> sessions=new HashMap<>();private BukkitTask task;private final java.util.function.LongSupplier clock;
  public ShardRewards(TurtleRolesPlugin p){this(p,()->System.nanoTime()/1_000_000);}
@@ -30,15 +30,15 @@ public final class ShardRewards implements Listener,CommandExecutor,AutoCloseabl
  public void cancelSelection(UUID id){selecting.remove(id);first.remove(id);}
  public boolean inside(Location l){return data.getBoolean("enabled")&&l.getWorld()!=null&&l.getWorld().getUID().toString().equals(data.getString("world"))&&l.getX()>=data.getDouble("min-x")&&l.getX()<data.getDouble("max-x")+1&&l.getY()>=data.getDouble("min-y")&&l.getY()<data.getDouble("max-y")+1&&l.getZ()>=data.getDouble("min-z")&&l.getZ()<data.getDouble("max-z")+1;}
  private boolean eligible(Player p){return !p.isDead()&&p.getGameMode()!=GameMode.SPECTATOR&&ClientCompatibility.authenticated(p)&&inside(p.getLocation());}
- private Session enter(Player p,long now){Session session=sessions.get(p.getUniqueId());if(session==null){session=new Session(now);sessions.put(p.getUniqueId(),session);p.showBossBar(session.bar);}return session;}
+ private Session enter(Player p,long now){Session session=sessions.get(p.getUniqueId());if(session==null){session=new Session(now,interval(plugin.roleService().boosterTier(p.getUniqueId())));sessions.put(p.getUniqueId(),session);p.showBossBar(session.bar);}return session;}
  private void leave(Player p){Session session=sessions.remove(p.getUniqueId());if(session!=null){p.hideBossBar(session.bar);p.sendActionBar(net.kyori.adventure.text.Component.empty());}}
  private void clearSessions(){for(Player p:Bukkit.getOnlinePlayers())leave(p);sessions.clear();}
  static String duration(long seconds){if(seconds<60)return seconds+"s";if(seconds<3600)return seconds/60+"m "+seconds%60+"s";if(seconds<86400)return seconds/3600+"h "+seconds%3600/60+"m";return seconds/86400+"d "+seconds%86400/3600+"h";}
- private void display(Player p,Session session,long now){long seconds=Math.max(0,(session.next-now+999)/1000);session.bar.name(net.kyori.adventure.text.Component.text(ConquestMotd.smallCaps("AFK | Next shard: ")+seconds+"s",PURPLE));session.bar.progress((float)Math.clamp((session.next-now)/(double)INTERVAL,0,1));p.sendActionBar(net.kyori.adventure.text.Component.text(ConquestMotd.smallCaps("Session shards: ")+session.earned+" | "+ConquestMotd.smallCaps("AFK time: ")+duration(Math.max(0,now-session.started)/1000),PURPLE));}
+ private void display(Player p,Session session,long now){long seconds=Math.max(0,(session.next-now+999)/1000);session.bar.name(net.kyori.adventure.text.Component.text(ConquestMotd.smallCaps("AFK | Next shard: ")+seconds+"s",PURPLE));session.bar.progress((float)Math.clamp((session.next-now)/(double)session.interval,0,1));p.sendActionBar(net.kyori.adventure.text.Component.text(ConquestMotd.smallCaps("Session shards: ")+session.earned+" | "+ConquestMotd.smallCaps("AFK time: ")+duration(Math.max(0,now-session.started)/1000),PURPLE));}
  long earned(UUID id){Session s=sessions.get(id);return s==null?0:s.earned;}
  boolean active(UUID id){return sessions.containsKey(id);}
  void tick(){long now=clock.getAsLong();Map<UUID,Long> awards=new HashMap<>();
-  for(Player p:Bukkit.getOnlinePlayers()){if(!eligible(p)){leave(p);continue;}Session session=enter(p,now);if(now>=session.next){awards.put(p.getUniqueId(),1L);session.next=now+INTERVAL;}}
+  for(Player p:Bukkit.getOnlinePlayers()){if(!eligible(p)){leave(p);continue;}Session session=enter(p,now);long rate=interval(plugin.roleService().boosterTier(p.getUniqueId()));if(rate!=session.interval){session.next=now+rate;session.interval=rate;}if(now>=session.next){awards.put(p.getUniqueId(),1L);session.next=now+session.interval;}}
   if(!awards.isEmpty())try{plugin.races().store().creditBatch(awards);awards.keySet().forEach(id->sessions.get(id).earned++);}catch(Exception e){plugin.getLogger().warning("Could not save AFK shard awards: "+e.getMessage());}
   for(Player p:Bukkit.getOnlinePlayers()){Session session=sessions.get(p.getUniqueId());if(session!=null)display(p,session,now);}
  }
@@ -50,7 +50,7 @@ public final class ShardRewards implements Listener,CommandExecutor,AutoCloseabl
   if(e.getAction()==org.bukkit.event.block.Action.LEFT_CLICK_BLOCK){first.put(p.getUniqueId(),e.getClickedBlock().getLocation());p.sendMessage("First AFK corner selected. Right-click the opposite corner, including its height.");}
   else if(e.getAction()==org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK){Location a=first.get(p.getUniqueId()),b=e.getClickedBlock().getLocation();if(a==null||a.getWorld()!=b.getWorld()){p.sendMessage("Select the first corner in this world first.");return;}
    YamlConfiguration next=new YamlConfiguration();next.set("enabled",true);next.set("world",a.getWorld().getUID().toString());next.set("min-x",Math.min(a.getBlockX(),b.getBlockX()));next.set("max-x",Math.max(a.getBlockX(),b.getBlockX()));next.set("min-y",Math.min(a.getBlockY(),b.getBlockY()));next.set("max-y",Math.max(a.getBlockY(),b.getBlockY()));next.set("min-z",Math.min(a.getBlockZ(),b.getBlockZ()));next.set("max-z",Math.max(a.getBlockZ(),b.getBlockZ()));
-   try{AtomicYaml.save(next,file);data=next;clearSessions();selecting.remove(p.getUniqueId());first.remove(p.getUniqueId());p.sendMessage("AFK zone saved, including both selected heights. One shard every ten seconds inside.");}catch(Exception ex){p.sendMessage("Could not save the AFK zone.");}
+   try{AtomicYaml.save(next,file);data=next;clearSessions();selecting.remove(p.getUniqueId());first.remove(p.getUniqueId());p.sendMessage("AFK zone saved, including both selected heights. One shard every 30 seconds, 20 for Booster, or 10 for Booster X2.");}catch(Exception ex){p.sendMessage("Could not save the AFK zone.");}
   }
  }
  @Override public boolean onCommand(CommandSender s,Command c,String label,String[] a){

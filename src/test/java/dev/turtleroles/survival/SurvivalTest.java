@@ -30,17 +30,36 @@ class SurvivalTest {
     @AfterEach void close(){MockBukkit.unmock();}
     void command(String name,String...args){Command cmd=mock(Command.class);when(cmd.getName()).thenReturn(name);module.onCommand(player,cmd,name,args);}
     @Test void ranksReceiveFiveSixAndTenWithoutMediaStaff(){
-        assertEquals(5,SurvivalModule.homeLimit(Role.MEMBER));assertEquals(6,SurvivalModule.homeLimit(Role.MEDIA));
+        assertEquals(2,SurvivalModule.homeLimit(Role.MEMBER));assertEquals(6,SurvivalModule.homeLimit(Role.MEDIA));
         assertEquals(6,SurvivalModule.homeLimit(Role.HELPER));assertEquals(10,SurvivalModule.homeLimit(Role.ADMIN));
         assertEquals(10,SurvivalModule.homeLimit(Role.OWNER));assertFalse(Role.MEDIA.isStaff());
         assertTrue(Role.MEDIA.outranks(Role.MEMBER));assertTrue(Role.HELPER.outranks(Role.MEDIA));
     }
     @Test void homesPersistAndLimitDoesNotPreventUpdatingAnExistingHome(){
         for(int i=0;i<6;i++)command("sethome","h"+i);
-        var section=module.data.getConfigurationSection("homes."+player.getUniqueId());assertEquals(5,section.getKeys(false).size());
-        command("sethome","h0");assertEquals(5,section.getKeys(false).size());
+        var section=module.data.getConfigurationSection("homes."+player.getUniqueId());assertEquals(2,section.getKeys(false).size());
+        command("sethome","h0");assertEquals(2,section.getKeys(false).size());
         SurvivalModule reload=new SurvivalModule(plugin);assertNotNull(reload.data.getLocation("homes."+player.getUniqueId()+".h0"));
         command("delhome","h1");command("sethome","h5");assertNotNull(module.data.getLocation("homes."+player.getUniqueId()+".h5"));
+    }
+    @Test void newRanksAndCombinedBoosterUseHighestHomeLimit(){
+        Role[] ranks={Role.COAL,Role.IRON,Role.REDSTONE,Role.DIAMOND,Role.NETHERITE,Role.BOOSTER,Role.BOOSTER_X2};
+        int[] limits={4,6,8,13,23,4,7};for(int i=0;i<ranks.length;i++)assertEquals(limits[i],SurvivalModule.homeLimit(ranks[i]));
+        when(roles.effectiveRoleOf(player.getUniqueId())).thenReturn(Role.DIAMOND);when(roles.boosterTier(player.getUniqueId())).thenReturn(2);
+        for(int i=0;i<15;i++)command("sethome","d"+i);
+        assertEquals(13,module.data.getConfigurationSection("homes."+player.getUniqueId()).getKeys(false).size());
+    }
+    @Test void spawnBlocksChestsButtonsAndDoorsButStaffCanInteract(){
+        var w=player.getWorld();module.data.set("spawn-area.first",new Location(w,0,0,0));module.data.set("spawn-area.second",new Location(w,10,0,10));
+        var protection=new SpawnProtection(module);
+        for(Material material:new Material[]{Material.CHEST,Material.STONE_BUTTON,Material.OAK_DOOR}){
+            var b=w.getBlockAt(5,70,5);b.setType(material);
+            var e=new org.bukkit.event.player.PlayerInteractEvent(player,org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK,null,b,org.bukkit.block.BlockFace.UP);
+            protection.interact(e);assertEquals(org.bukkit.event.Event.Result.DENY,e.useInteractedBlock());
+        }
+        when(roles.roleOf(player.getUniqueId())).thenReturn(Role.ADMIN);
+        var e=new org.bukkit.event.player.PlayerInteractEvent(player,org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK,null,w.getBlockAt(5,70,5),org.bukkit.block.BlockFace.UP);
+        protection.interact(e);assertNotEquals(org.bukkit.event.Event.Result.DENY,e.useInteractedBlock());
     }
     @Test void invalidHomeNamesCannotCreateNestedSettings(){command("sethome","../../spawn");assertNull(module.data.getConfigurationSection("homes"));}
     @Test void combatPreventsHomeMutation(){when(plugin.combat().tagged(player)).thenReturn(true);command("sethome","test");assertNull(module.data.getConfigurationSection("homes"));}

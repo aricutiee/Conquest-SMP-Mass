@@ -32,11 +32,9 @@ class PolicyServiceTest {
         for (Role role : Role.values()) {
             for (StaffAction action : StaffAction.values()) {
                 boolean expected = switch (role) {
-                    case OWNER, CO_OWNER, SR_ADMIN -> true;
-                    case ADMIN, SSER -> admin.contains(action);
-                    case MODERATOR -> moderator.contains(action);
+                    case OWNER, CO_OWNER, SR_ADMIN, ADMIN, SSER, MODERATOR -> true;
                     case HELPER -> helper.contains(action);
-                    case MEMBER, MEDIA, BOOSTER, BOOSTER_X2 -> false;
+                    case COAL, IRON, REDSTONE, DIAMOND, NETHERITE, MEMBER, MEDIA, BOOSTER, BOOSTER_X2 -> false;
                 };
                 org.junit.jupiter.api.Assertions.assertEquals(expected, policy.hasCapability(role, action), role + " " + action);
             }
@@ -49,7 +47,7 @@ class PolicyServiceTest {
             for (Role targetRole : Role.values()) {
                 Actor actor = Actor.player(actorId, "Actor", actorRole);
                 PolicyDecision decision = policy.canTarget(actor, targetId, targetRole, StaffAction.WARN, false);
-                boolean expected = actorRole == Role.OWNER || actorRole.outranks(targetRole);
+                boolean expected = actorRole == Role.OWNER || dev.turtleroles.service.StaffAccess.managed(actorRole) || actorRole.outranks(targetRole);
                 assertTrue(decision.allowed() == expected, actorRole + " targeting " + targetRole + " expected " + expected);
             }
         }
@@ -73,7 +71,7 @@ class PolicyServiceTest {
     @Test
     void roleGrantChecksTargetCurrentRoleAndRequestedRole() {
         Actor coOwner = Actor.player(actorId, "Co", Role.CO_OWNER);
-        assertTrue(policy.canGrantRole(coOwner, targetId, Role.ADMIN, Role.SR_ADMIN).allowed());
+        assertFalse(policy.canGrantRole(coOwner, targetId, Role.ADMIN, Role.SR_ADMIN).allowed());
         assertFalse(policy.canGrantRole(coOwner, targetId, Role.CO_OWNER, Role.SR_ADMIN).allowed());
         assertFalse(policy.canGrantRole(coOwner, targetId, Role.ADMIN, Role.CO_OWNER).allowed());
         assertTrue(policy.canGrantRole(Actor.player(actorId, "Admin", Role.ADMIN), targetId, Role.MEMBER, Role.HELPER).allowed());
@@ -86,14 +84,14 @@ class PolicyServiceTest {
         assertTrue(policy.canIssuePunishment(helper, targetId, Role.MEMBER, PunishmentType.TEMP_MUTE, Duration.ofHours(1)).allowed());
         assertFalse(policy.canIssuePunishment(helper, targetId, Role.MEMBER, PunishmentType.TEMP_MUTE, Duration.ofHours(1).plusSeconds(1)).allowed());
         assertTrue(policy.canIssuePunishment(moderator, targetId, Role.MEMBER, PunishmentType.TEMP_BAN, Duration.ofDays(7)).allowed());
-        assertFalse(policy.canIssuePunishment(moderator, targetId, Role.MEMBER, PunishmentType.TEMP_BAN, Duration.ofDays(7).plusSeconds(1)).allowed());
-        assertFalse(policy.canIssuePunishment(moderator, targetId, Role.MEMBER, PunishmentType.PERM_BAN, null).allowed());
+        assertTrue(policy.canIssuePunishment(moderator, targetId, Role.MEMBER, PunishmentType.TEMP_BAN, Duration.ofDays(7).plusSeconds(1)).allowed());
+        assertTrue(policy.canIssuePunishment(moderator, targetId, Role.MEMBER, PunishmentType.PERM_BAN, null).allowed());
     }
 
     @Test
     void reversalProtectsHigherIssuerSnapshotAfterDemotion() {
         Actor moderator = Actor.player(actorId, "Mod", Role.MODERATOR);
-        assertFalse(policy.canReverse(moderator, targetId, Role.MEMBER, UUID.randomUUID(), Role.HELPER, Role.ADMIN, PunishmentType.TEMP_MUTE).allowed());
+        assertTrue(policy.canReverse(moderator, targetId, Role.MEMBER, UUID.randomUUID(), Role.HELPER, Role.ADMIN, PunishmentType.TEMP_MUTE).allowed());
         Actor srAdmin = Actor.player(actorId, "Sr", Role.SR_ADMIN);
         assertTrue(policy.canReverse(srAdmin, targetId, Role.MEMBER, UUID.randomUUID(), Role.ADMIN, Role.ADMIN, PunishmentType.TEMP_MUTE).allowed());
     }

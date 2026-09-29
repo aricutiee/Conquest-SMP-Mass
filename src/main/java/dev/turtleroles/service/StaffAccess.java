@@ -11,7 +11,7 @@ import java.util.UUID;
 public final class StaffAccess {
     private StaffAccess() {}
     public static boolean managed(Role role) {
-        return role == Role.SSER || role == Role.ADMIN || role == Role.SR_ADMIN || role == Role.CO_OWNER;
+        return role == Role.MODERATOR || role == Role.SSER || role == Role.ADMIN || role == Role.SR_ADMIN || role == Role.CO_OWNER;
     }
     public static Set<String> permissions(Role role) {
         if (!managed(role)) return Set.of();
@@ -34,7 +34,7 @@ public final class StaffAccess {
         if (roles == null) return false;
         var actor = roles.actor(staff);
         boolean allowed = actor.ownerOverride() || (managed(actor.role()) &&
-                (selfAllowed && staff.getUniqueId().equals(target) || actor.role().outranks(roles.effectiveRoleOf(target))));
+                (selfAllowed || !staff.getUniqueId().equals(target)));
         if (!allowed) staff.sendMessage("You can only manage players below your role.");
         return allowed;
     }

@@ -46,7 +46,7 @@ final class SurvivalSidebar implements AutoCloseable {
                 Component.text("◆ ",PURPLE).append(letters("Shards: ",icons).decorate(TextDecoration.BOLD)).append(letters(Long.toString(shards.applyAsLong(player)),icons).decoration(TextDecoration.BOLD,false)),
                 stat(3,"Ping",player.getPing()+"ms",icons),
                 stat(4,"Playtime",duration(Integer.toUnsignedLong(player.getStatistic(Statistic.PLAY_ONE_MINUTE))/20),icons),
-                letters("IP: ",icons).color(icons ? TextColor.color(0xD4B6D9) : IP_PURPLE).decorate(TextDecoration.BOLD).append(Component.text("ConquestSMP.net",IP_PURPLE).font(Key.key("minecraft:default")).decoration(TextDecoration.BOLD,false)),rule};
+                Component.text(icons?"IP: CONQUESTSMP.NET":smallCaps("IP: ConquestSMP.net"),IP_PURPLE).font(Key.key(icons?"turtleroles:sidebar_ip":"minecraft:default")).decoration(TextDecoration.BOLD,false),rule};
         for(int i=0;i<lines.length;i++)view.lines.get(i).prefix(lines[i]);
         // A grace-period objective can temporarily occupy the sidebar without being overwritten.
         if(view.board.getObjective(DisplaySlot.SIDEBAR)==null)view.objective.setDisplaySlot(DisplaySlot.SIDEBAR);

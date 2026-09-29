@@ -48,7 +48,7 @@ class NicknameServiceTest {
     }
     void cmd(Player p,String... args){service.onCommand(p,null,"nick",args);}
     @Test void onlyBoosterAndHigherOrOpQualify(){
-        for(Role role:Role.values())assertEquals(role!=Role.MEMBER,NicknameService.eligible(role,false));
+        for(Role role:Role.values())assertEquals(role!=Role.MEMBER&&role!=Role.COAL,NicknameService.eligible(role,false));
         assertTrue(NicknameService.eligible(Role.MEMBER,true));
         assertFalse(NicknameService.validName("../Joe"));assertFalse(NicknameService.validName("a b"));assertTrue(NicknameService.validName("Jerry_12"));
         Player p=player("Ari",Role.MEMBER);cmd(p,"Jerry");result.complete(profile(UUID.randomUUID(),"Jerry"));verify(p,never()).setPlayerProfile(any());

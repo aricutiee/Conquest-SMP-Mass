@@ -66,7 +66,7 @@ public final class BoosterKits implements Listener, AutoCloseable {
             if (!(sender instanceof Player p)) { sender.sendMessage("Use this command in game."); return true; }
             boolean edit=args.length==1 && args[0].equalsIgnoreCase("edit");
             if (args.length>0 && !edit) { p.sendMessage("Usage: /kit [edit]"); return true; }
-            if (edit && !p.isOp()) { p.sendMessage("Only operators can edit the Booster kit."); return true; }
+            if (edit && !p.isOp() && !GameplayBypass.allowed(plugin,p)) { p.sendMessage("Only operators can edit the Booster kit."); return true; }
             if (!edit && !eligible(p)) { p.sendMessage("This kit is for Boosters."); return true; }
             if (edit && editor!=null) { p.sendMessage("Someone is already editing the kit."); return true; }
             p.closeInventory();
@@ -90,13 +90,13 @@ public final class BoosterKits implements Listener, AutoCloseable {
         var command=Objects.requireNonNull(plugin.getCommand("kit"));
         command.getExecutor().onCommand(event.getPlayer(),command,"kit",Arrays.copyOfRange(words,1,words.length));
     }
-    private boolean eligible(Player p) { return p.isOp() || GameplayBypass.allowed(plugin,p) || plugin.roleService().roleOf(p.getUniqueId())==Role.BOOSTER || plugin.roleService().roleOf(p.getUniqueId())==Role.BOOSTER_X2; }
+    private boolean eligible(Player p) { return p.isOp() || GameplayBypass.allowed(plugin,p) || plugin.roleService().boosterTier(p.getUniqueId())>0; }
     public boolean started(){
         try{return ledger.launchRemaining(System.currentTimeMillis())!=Long.MAX_VALUE;}
         catch(java.sql.SQLException ex){throw new IllegalStateException("Cannot read launch state",ex);}
     }
     public static long interval(Role role) {return role==Role.BOOSTER?3*KitLedger.DAY:KitLedger.DAY;}
-    private long hours(Player p) {return interval(plugin.roleService().roleOf(p.getUniqueId()))/3_600_000L;}
+    private long hours(Player p) {return interval(plugin.roleService().boosterTier(p.getUniqueId())==1?Role.BOOSTER:Role.BOOSTER_X2)/3_600_000L;}
     private long launchRemaining() {
         try{return ledger.launchRemaining(System.currentTimeMillis());}
         catch(java.sql.SQLException ex){plugin.getLogger().log(java.util.logging.Level.SEVERE,"Cannot read kit launch",ex);return Long.MAX_VALUE;}
@@ -105,7 +105,7 @@ public final class BoosterKits implements Listener, AutoCloseable {
     public void click(InventoryClickEvent e) {
         if (!(e.getView().getTopInventory().getHolder() instanceof Menu m)) return;
         if (!(e.getWhoClicked() instanceof Player p)) {e.setCancelled(true);return;}
-        if(m.edit) { if(!p.isOp())e.setCancelled(true);return; }
+        if(m.edit) { if(!p.isOp() && !GameplayBypass.allowed(plugin,p))e.setCancelled(true);return; }
         boolean alreadyCancelled=e.isCancelled(); e.setCancelled(true);
         if(alreadyCancelled || e.getRawSlot()!=31 || !m.owner.equals(p.getUniqueId()) || !eligible(p)) return;
         long launchWait=launchRemaining();
@@ -124,12 +124,12 @@ public final class BoosterKits implements Listener, AutoCloseable {
     }
     @EventHandler(priority=EventPriority.HIGHEST)
     public void drag(InventoryDragEvent e) {
-        if(e.getView().getTopInventory().getHolder() instanceof Menu m && (!m.edit || !e.getWhoClicked().isOp())) e.setCancelled(true);
+        if(e.getView().getTopInventory().getHolder() instanceof Menu m && (!m.edit || (!e.getWhoClicked().isOp() && !GameplayBypass.allowed(plugin,e.getWhoClicked())))) e.setCancelled(true);
     }
     @EventHandler public void closeMenu(InventoryCloseEvent e) {
         if(!(e.getInventory().getHolder() instanceof Menu m) || !m.edit) return;
         editor=null;
-        if(!e.getPlayer().isOp()) return;
+        if(!e.getPlayer().isOp() && !GameplayBypass.allowed(plugin,e.getPlayer())) return;
         ItemStack[] proposed=e.getInventory().getContents();
         // The template uses a shulker-sized inventory; do not allow nested shulkers.
         if(Arrays.stream(proposed).anyMatch(i->i!=null && Tag.SHULKER_BOXES.isTagged(i.getType()))) { e.getPlayer().sendMessage("Kit not saved: remove nested shulker boxes.");return; }

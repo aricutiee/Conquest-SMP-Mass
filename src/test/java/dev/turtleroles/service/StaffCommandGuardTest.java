@@ -19,10 +19,10 @@ class StaffCommandGuardTest {
         when(roles.effectiveRoleOf(owner.getUniqueId())).thenReturn(Role.OWNER);
         when(roles.effectiveRoleOf(member.getUniqueId())).thenReturn(Role.MEMBER);
         var guard=new StaffCommandGuard(plugin,roles);
-        for(String command:new String[]{"/kill OwnerOne","/minecraft:kill OwnerOne","/ss freeze OwnerOne","/tp OwnerOne AdminOne","/op AdminOne","/kill @a"}) {
+        for(String command:new String[]{"/op AdminOne","/minecraft:deop OwnerOne","/lp user AdminOne permission set * true","/execute run op AdminOne","/kill @a"}) {
             var event=new PlayerCommandPreprocessEvent(admin,command);guard.command(event);assertTrue(event.isCancelled(),command);
         }
-        for(String command:new String[]{"/kill MemberOne","/ss freeze MemberOne","/gamemode creative AdminOne"}) {
+        for(String command:new String[]{"/kill OwnerOne","/minecraft:kill OwnerOne","/ss freeze OwnerOne","/tp OwnerOne AdminOne","/kill MemberOne","/ss freeze MemberOne","/gamemode creative AdminOne"}) {
             var event=new PlayerCommandPreprocessEvent(admin,command);guard.command(event);assertFalse(event.isCancelled(),command);
         }
         when(roles.roleOf(admin.getUniqueId())).thenReturn(Role.OWNER);

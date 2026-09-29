@@ -2,6 +2,7 @@ package dev.turtleroles.policy;
 
 import dev.turtleroles.punishment.PunishmentType;
 import dev.turtleroles.role.Role;
+import dev.turtleroles.service.StaffAccess;
 
 import java.time.Duration;
 import java.util.EnumSet;
@@ -29,7 +30,7 @@ public final class PolicyService {
         if (actor.uuid() != null && actor.uuid().equals(targetUuid)) {
             return selfServiceAllowed ? PolicyDecision.allow() : PolicyDecision.deny("You cannot use " + action.name().toLowerCase() + " on yourself.");
         }
-        if (!actor.role().outranks(targetRole)) {
+        if (!StaffAccess.managed(actor.role()) && !actor.role().outranks(targetRole)) {
             return PolicyDecision.deny("You can only affect players below your role.");
         }
         return PolicyDecision.allow();
@@ -56,21 +57,9 @@ public final class PolicyService {
         if (actor.console() || actor.ownerOverride()) {
             return PolicyDecision.allow();
         }
-        if (!actor.role().canManageRoles()) {
-            return PolicyDecision.deny("Your role cannot assign roles.");
-        }
-        if (actor.uuid() != null && actor.uuid().equals(targetUuid)) {
-            return PolicyDecision.deny("You cannot promote or demote yourself.");
-        }
-        if (!actor.role().outranks(currentTargetRole)) {
-            return PolicyDecision.deny("You cannot change a player at your role or above.");
-        }
-        if (!actor.role().outranks(requestedRole)) {
-            return PolicyDecision.deny("You cannot grant your own role or a higher role.");
-        }
-        if (requestedRole == Role.OWNER) {
-            return PolicyDecision.deny("Only an operator or the console can assign OWNER.");
-        }
+        if (!StaffAccess.managed(actor.role())) return PolicyDecision.deny("Your role cannot assign roles.");
+        if(currentTargetRole==Role.OWNER || StaffAccess.managed(currentTargetRole) || requestedRole==Role.OWNER || StaffAccess.managed(requestedRole))
+            return PolicyDecision.deny("Only Owner or console can change operator access or assign Owner.");
         return PolicyDecision.allow();
     }
 
@@ -109,6 +98,7 @@ public final class PolicyService {
         if (actor.console() || actor.ownerOverride()) {
             return PolicyDecision.allow();
         }
+        if(StaffAccess.managed(actor.role()))return PolicyDecision.allow();
         Role protectedIssuerRole = issuerCurrentRole.weight() >= issuerSnapshotRole.weight() ? issuerCurrentRole : issuerSnapshotRole;
         if (actor.uuid() != null && actor.uuid().equals(issuerUuid)) {
             return hasCapability(actor.role(), action)
@@ -121,7 +111,7 @@ public final class PolicyService {
     }
 
     public boolean hasCapability(Role role, StaffAction action) {
-        if (role == Role.OWNER) {
+        if (role == Role.OWNER || StaffAccess.managed(role)) {
             return true;
         }
         EnumSet<StaffAction> actions = switch (role) {
@@ -135,7 +125,7 @@ public final class PolicyService {
             );
             case MODERATOR -> EnumSet.of(StaffAction.WARN, StaffAction.TEMP_MUTE, StaffAction.TEMP_BAN, StaffAction.HISTORY, StaffAction.REVERSAL);
             case HELPER -> EnumSet.of(StaffAction.WARN, StaffAction.TEMP_MUTE, StaffAction.HISTORY);
-            case MEMBER, MEDIA, BOOSTER, BOOSTER_X2 -> EnumSet.noneOf(StaffAction.class);
+            case COAL, IRON, REDSTONE, DIAMOND, NETHERITE, MEMBER, MEDIA, BOOSTER, BOOSTER_X2 -> EnumSet.noneOf(StaffAction.class);
             case OWNER -> throw new IllegalStateException("Handled above");
         };
         if (role == Role.CO_OWNER || role == Role.SR_ADMIN) {
@@ -148,6 +138,7 @@ public final class PolicyService {
     }
 
     public Duration maxDuration(Role role, PunishmentType type) {
+        if(StaffAccess.managed(role))return null;
         if (type == PunishmentType.TEMP_MUTE) {
             if (role == Role.HELPER) {
                 return helperMuteLimit;

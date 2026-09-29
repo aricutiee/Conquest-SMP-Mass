@@ -8,7 +8,7 @@ import java.io.IOException;
 
 /** Five-pixel small capitals in the scoreboard's light purple. */
 final class SidebarFontGenerator {
-    private static final String CHARS="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:-";
+    private static final String CHARS="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:-.";
     private static final String[] GLYPHS={
         "01110/10001/11111/10001/10001", "11110/10001/11110/10001/11110",
         "01111/10000/10000/10000/01111", "11110/10001/10001/10001/11110",
@@ -28,7 +28,7 @@ final class SidebarFontGenerator {
         "10010/10010/11111/00010/00010", "11111/10000/11110/00001/11110",
         "01111/10000/11110/10001/01110", "11111/00001/00010/00100/00100",
         "01110/10001/01110/10001/01110", "01110/10001/01111/00001/11110",
-        "0/1/0/1/0", "000/000/111/000/000"
+        "0/1/0/1/0", "000/000/111/000/000", "0/0/0/0/1"
     };
     static int ink() {
         return 0xFFB477FF;
@@ -52,6 +52,10 @@ final class SidebarFontGenerator {
             chars.append('"');
         }
         Files.writeString(fonts.resolve("sidebar.json"),"{\"providers\":[{\"type\":\"space\",\"advances\":{\" \":3}},{\"type\":\"bitmap\",\"file\":\"turtleroles:font/sidebar.png\",\"height\":8,\"ascent\":7,\"chars\":["+chars+"]}]}\n");
+        BufferedImage ip=new BufferedImage(atlas.getWidth(),atlas.getHeight(),BufferedImage.TYPE_INT_ARGB);
+        for(int y=0;y<atlas.getHeight();y++)for(int x=0;x<atlas.getWidth();x++)if((atlas.getRGB(x,y)>>>24)!=0)ip.setRGB(x,y,0xFFFFFFFF);
+        ImageIO.write(ip,"png",textures.resolve("sidebar_ip.png").toFile());
+        Files.writeString(fonts.resolve("sidebar_ip.json"),Files.readString(fonts.resolve("sidebar.json")).replace("sidebar.png","sidebar_ip.png").replace("\"height\":8","\"height\":10").replace("\"ascent\":7","\"ascent\":8"));
         BufferedImage title=new BufferedImage(atlas.getWidth(),atlas.getHeight(),BufferedImage.TYPE_INT_ARGB);
         for(int y=0;y<atlas.getHeight();y++)for(int x=0;x<atlas.getWidth();x++)if((atlas.getRGB(x,y)>>>24)!=0){
             double f=Math.clamp(((y%8)-2)/4.0,0,1);int top=0xB78AFF,bottom=0x29143D;

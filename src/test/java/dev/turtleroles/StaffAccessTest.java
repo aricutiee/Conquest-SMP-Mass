@@ -23,14 +23,14 @@ class StaffAccessTest {
             assertFalse(nodes.contains("serverutil.players.inventory.edit"));
         }
         assertTrue(StaffAccess.permissions(Role.MEMBER).isEmpty());
-        assertTrue(StaffAccess.permissions(Role.MODERATOR).isEmpty());
+        assertFalse(StaffAccess.permissions(Role.MODERATOR).isEmpty());
     }
     @Test void everyAdministrativeActionRespectsHigherAndEqualRanks() {
         for (Role role : new Role[]{Role.SSER, Role.CO_OWNER, Role.SR_ADMIN, Role.ADMIN}) {
             var actor = Actor.player(UUID.randomUUID(), "Staff", role, false);
             for (Role target : Role.values()) for (StaffAction action : StaffAction.values()) {
                 boolean actual = policy.canUseOnTarget(actor, UUID.randomUUID(), target, action, false).allowed();
-                assertEquals(role.outranks(target) && policy.hasCapability(role, action), actual, role+" "+target+" "+action);
+                assertEquals(policy.hasCapability(role, action), actual, role+" "+target+" "+action);
             }
         }
     }

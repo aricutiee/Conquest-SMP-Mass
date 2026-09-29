@@ -161,6 +161,11 @@ public final class RoleMenuService implements Listener {
             case HELPER -> Material.YELLOW_STAINED_GLASS_PANE;
             case MEDIA -> Material.PINK_STAINED_GLASS_PANE;
             case BOOSTER, BOOSTER_X2 -> Material.PURPLE_STAINED_GLASS_PANE;
+            case COAL -> Material.COAL;
+            case IRON -> Material.IRON_INGOT;
+            case REDSTONE -> Material.REDSTONE;
+            case DIAMOND -> Material.DIAMOND;
+            case NETHERITE -> Material.NETHERITE_INGOT;
             case MEMBER -> Material.GRAY_STAINED_GLASS_PANE;
         };
     }

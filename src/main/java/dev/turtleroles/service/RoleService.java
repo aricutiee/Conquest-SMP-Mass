@@ -19,6 +19,8 @@ import java.util.logging.Level;
 
 public final class RoleService {
     private final Plugin plugin;
+    private final org.bukkit.configuration.file.YamlConfiguration benefits;
+    private final java.nio.file.Path benefitsFile;
     private final Map<UUID, org.bukkit.permissions.PermissionAttachment> staffPermissions = new ConcurrentHashMap<>();
     private final PlayerRepository players;
     private final Map<UUID, PlayerRecord> recordsByUuid = new ConcurrentHashMap<>();
@@ -27,6 +29,8 @@ public final class RoleService {
     public RoleService(Plugin plugin, PlayerRepository players) {
         this.plugin = plugin;
         this.players = players;
+        benefitsFile=plugin.getDataFolder().toPath().resolve("rank-benefits.yml");
+        benefits=org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(benefitsFile.toFile());
     }
 
     public PlayerRecord loadOrCreate(Player player) throws SQLException {
@@ -57,10 +61,6 @@ public final class RoleService {
     }
 
     public Role effectiveRoleOf(UUID uuid) {
-        Player online = Bukkit.getPlayer(uuid);
-        if (!StaffAccess.managed(roleOf(uuid)) && (online != null ? online.isOp() : Bukkit.getOfflinePlayer(uuid).isOp())) {
-            return Role.OWNER;
-        }
         return roleOf(uuid);
     }
 
@@ -69,7 +69,7 @@ public final class RoleService {
             return Actor.systemConsole();
         }
         if (sender instanceof Player player) {
-            return Actor.player(player.getUniqueId(), player.getName(), roleOf(player.getUniqueId()), player.isOp() && !StaffAccess.managed(roleOf(player.getUniqueId())));
+            return Actor.player(player.getUniqueId(), player.getName(), roleOf(player.getUniqueId()), false);
         }
         return new Actor(null, sender.getName(), Role.MEMBER, false, false);
     }
@@ -86,6 +86,7 @@ public final class RoleService {
     }
 
     public void reconcileOnlineOps() {
+        for(var operator:Bukkit.getOperators())if(roleOf(operator.getUniqueId())!=Role.OWNER)operator.setOp(false);
         for (Player player : Bukkit.getOnlinePlayers()) {
             reconcileOp(player, roleOf(player.getUniqueId()));
         }
@@ -100,10 +101,15 @@ public final class RoleService {
             player.updateCommands();
         }
         if (StaffAccess.managed(role)) {
-            if (!player.isOp()) player.setOp(true);
+            if (player.isOp()) player.setOp(false);
             var attachment = player.addAttachment(plugin);
+            for(var permission:Bukkit.getPluginManager().getPermissions()) {
+                if(permission.getDefault().getValue(true))attachment.setPermission(permission.getName(),true);
+            }
+            for(String root:java.util.List.of("op","deop","execute","function","reload","datapack","debug","schedule","jfr"))attachment.setPermission("minecraft.command."+root,false);
+            for(String node:java.util.List.of("luckperms.*","permissions.*","bukkit.command.op","bukkit.command.deop","bukkit.command.reload"))attachment.setPermission(node,false);
             StaffAccess.permissions(role).forEach(node -> attachment.setPermission(node, true));
-            attachment.setPermission("serverutil.punishments.overrideprotected", false);
+            attachment.setPermission("serverutil.punishments.overrideprotected", true);
             staffPermissions.put(player.getUniqueId(), attachment);
             player.updateCommands();
             return;
@@ -114,12 +120,7 @@ public final class RoleService {
             plugin.getLogger().info("Reconciled OP for stored Owner " + player.getName() + ": true");
             return;
         }
-        if (role != Role.OWNER && player.isOp()) {
-            if (loggedOperatorOverrides.add(player.getUniqueId())) {
-                plugin.getLogger().info("External OP override detected for " + player.getName() + "; TurtleRoles will treat them as owner-level until they are deopped.");
-            }
-            return;
-        }
+        if (role != Role.OWNER && player.isOp()) player.setOp(false);
         if (!player.isOp()) {
             loggedOperatorOverrides.remove(player.getUniqueId());
         }
@@ -138,6 +139,16 @@ public final class RoleService {
         staffPermissions.clear();
     }
 
+    public int boosterTier(UUID id) {
+        int base=roleOf(id)==Role.BOOSTER_X2?2:roleOf(id)==Role.BOOSTER?1:0;
+        return Math.max(base,Math.clamp(benefits.getInt(id.toString()),0,2));
+    }
+    public void setBooster(UUID id,int tier) throws java.io.IOException {
+        String old=benefits.saveToString();benefits.set(id.toString(),tier);
+        try {AtomicYaml.save(benefits,benefitsFile);} catch(java.io.IOException ex) {
+            try{benefits.loadFromString(old);}catch(Exception ignored){}throw ex;
+        }
+    }
     public PlayerRepository players() {
         return players;
     }

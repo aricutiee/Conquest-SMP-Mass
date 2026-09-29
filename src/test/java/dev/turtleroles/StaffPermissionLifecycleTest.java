@@ -12,9 +12,12 @@ import java.util.UUID;
 import static org.mockito.Mockito.*;
 
 class StaffPermissionLifecycleTest {
+    @org.junit.jupiter.api.io.TempDir java.nio.file.Path dir;
+    @org.junit.jupiter.api.BeforeEach void start(){org.mockbukkit.mockbukkit.MockBukkit.mock();}
+    @org.junit.jupiter.api.AfterEach void stop(){org.mockbukkit.mockbukkit.MockBukkit.unmock();}
     @Test void managedStaffGetOperatorAccessRevokedOnLogout() {
         for (Role role : new Role[]{Role.SSER, Role.ADMIN, Role.SR_ADMIN, Role.CO_OWNER}) {
-            Plugin plugin = mock(Plugin.class);
+            Plugin plugin = mock(Plugin.class);when(plugin.getDataFolder()).thenReturn(dir.toFile());
             Player player = mock(Player.class);
             PermissionAttachment attachment = mock(PermissionAttachment.class);
             when(player.getUniqueId()).thenReturn(UUID.randomUUID());
@@ -22,7 +25,7 @@ class StaffPermissionLifecycleTest {
             when(player.addAttachment(plugin)).thenReturn(attachment);
             RoleService roles = new RoleService(plugin, mock(PlayerRepository.class));
             roles.reconcileOp(player, role);
-            verify(player).setOp(true);
+            verify(player, never()).setOp(true);
             for (String node : StaffAccess.permissions(role)) verify(attachment).setPermission(node, true);
             roles.removePermissions(player);
             roles.removePermissions(player);
@@ -31,7 +34,7 @@ class StaffPermissionLifecycleTest {
     }
 
     @Test void demotionRemovesPermissionsAndClosesStaleMenu() {
-        Plugin plugin = mock(Plugin.class);
+        Plugin plugin = mock(Plugin.class);when(plugin.getDataFolder()).thenReturn(dir.toFile());
         Player player = mock(Player.class);
         PermissionAttachment attachment = mock(PermissionAttachment.class);
         when(player.getUniqueId()).thenReturn(UUID.randomUUID());
@@ -42,7 +45,7 @@ class StaffPermissionLifecycleTest {
         verify(player).removeAttachment(attachment);
         verify(player).closeInventory();
         verify(player, times(1)).addAttachment(plugin);
-        verify(player).setOp(true);
+        verify(player, never()).setOp(true);
         verify(player).setOp(false);
     }
 }

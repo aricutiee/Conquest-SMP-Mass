@@ -57,6 +57,13 @@ public final class RoleCommand implements CommandExecutor, TabCompleter {
                 case "list" -> list(sender);
                 case "info" -> info(sender, args.length >= 2 ? args[1] : sender.getName());
                 case "set" -> set(sender, args);
+                case "booster" -> {
+                    if(!roles.actor(sender).ownerOverride())throw new IllegalArgumentException("Only Owner or console can change booster benefits.");
+                    if(args.length!=3)throw new IllegalArgumentException("/role booster <player> <0|1|2>");
+                    var target=players.resolveKnown(args[1]).orElseThrow(()->new IllegalArgumentException("Unknown player"));
+                    int tier=Integer.parseInt(args[2]);if(tier<0||tier>2)throw new IllegalArgumentException("Use 0, 1 or 2.");
+                    roles.setBooster(target.uuid(),tier);sender.sendMessage("Booster benefits set to "+tier+" for "+target.lastName()+". Primary role unchanged.");
+                }
                 case "bootstrap" -> bootstrap(sender, args);
                 default -> {
                     if (args.length == 1) {
@@ -73,7 +80,7 @@ public final class RoleCommand implements CommandExecutor, TabCompleter {
     }
 
     private void help(CommandSender sender) {
-        sender.sendMessage("TurtleRoles: /role, /role info <player>, /role set <player> <role> [reason], /role list. Operators can assign OWNER to multiple players.");
+        sender.sendMessage("TurtleRoles: /role, /role info <player>, /role set <player> <role> [reason], /role list. Only Owner or console can change operator ranks. /role booster <player> <0|1|2> changes additional booster benefits.");
     }
 
     private void list(CommandSender sender) throws SQLException {
@@ -143,7 +150,7 @@ public final class RoleCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return List.of("help", "info", "list", "set", "bootstrap");
+            return List.of("help", "info", "list", "set", "booster", "bootstrap");
         }
         if (args.length == 3 && "set".equalsIgnoreCase(args[0])) {
             return java.util.Arrays.stream(Role.values()).map(Role::id).toList();
