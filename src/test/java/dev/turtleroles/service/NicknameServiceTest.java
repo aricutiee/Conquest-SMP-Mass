@@ -93,4 +93,14 @@ class NicknameServiceTest {
         Player p=player("Ari",Role.BOOSTER);cmd(p,"Jerry");result.complete(profile(UUID.randomUUID(),"Jerry"));
         Player other=player("Other",Role.BOOSTER);cmd(other,"Jerry");cmd(other,"Ari");verify(other,times(2)).sendMessage("That username is already online or in use.");
     }
+    @Test void packetDisguiseRefreshHidesOldIdentityThenShowsNewWithoutChangingStorageUuid(){
+        Player p=player("Ari",Role.BOOSTER),viewer=player("Viewer",Role.MEMBER);when(viewer.canSee(p)).thenReturn(true);
+        service.identity=mock(NicknameIdentity.class);UUID alias=UUID.randomUUID();
+        cmd(p,"Jerry");result.complete(profile(alias,"Jerry"));
+        var order=inOrder(viewer,service.identity,p);
+        order.verify(viewer).hidePlayer(plugin,p);order.verify(service.identity).set(p.getUniqueId(),alias);
+        order.verify(p).setPlayerProfile(any());order.verify(viewer).showPlayer(plugin,p);
+        assertEquals(p.getUniqueId(),p.getPlayerProfile().getId());cmd(p,"reset");
+        verify(service.identity).set(p.getUniqueId(),null);assertEquals("Ari",p.getName());
+    }
 }

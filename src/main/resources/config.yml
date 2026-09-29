@@ -82,4 +82,7 @@ weapon-damage-caps:
 
 # Nicknames copy name and skin; real UUID, permissions and saved progress stay unchanged.
 nicknames:
+  # Other Java viewers see the copied UUID for TierTagger; storage/authentication stay real.
+  # Requires PacketEvents 2.14.0. Own-client and Bedrock views keep their normal UUIDs.
+  client-tier-identity: true
   lookup-cooldown-seconds: 10

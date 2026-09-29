@@ -1,6 +1,6 @@
 # Conquest SMP: player and staff guide
 
-Version 3.18.0 | Paper 1.21.11 | Author: ari
+Version 3.18.1 | Paper 1.21.11 | Author: ari
 
 This guide describes the implemented Conquest rules and the installed integrations. It supersedes older release notes where the rules changed. Timings and loot amounts below are the shipped settings unless identified otherwise. Administrators can change configuration, rewards and third-party permissions later.
 
@@ -322,4 +322,4 @@ Warlord music: The Dread by Kevin MacLeod (incompetech.com), licensed under CC B
 
 ## Nicknames
 
-Booster, Booster X2 and higher ranks can use `/nick <existing Java username>` to copy a name and skin. `/nick reset` restores the original profile. Helper and higher staff can use `/nick check [player]` to inspect real account names and UUIDs. Nicknames reset on logout, plugin shutdown, rank loss, or when the real owner of the copied name joins. Real UUIDs, permissions and saved progress never change. Third-party UUID-based tier mods may still show the original account tiers.
+Booster, Booster X2 and higher ranks can use `/nick <existing Java username>` to copy a name and skin. `/nick reset` restores the original profile. Helper and higher staff can use `/nick check [player]` to inspect real account names and UUIDs. Nicknames reset on logout, plugin shutdown, rank loss, or when the real owner of the copied name joins. Real UUIDs, permissions and saved progress never change. The PacketEvents bridge supplies the copied visible UUID to other Java players for TierTagger, while PvPTiers Tiers uses the copied name. Your own client and Bedrock views keep the real UUID. No external rank changes. See NICKNAMES.md for limitations and the in-game verification checklist.

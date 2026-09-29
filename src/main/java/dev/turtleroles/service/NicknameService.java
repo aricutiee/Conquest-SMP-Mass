@@ -21,10 +21,12 @@ public final class NicknameService implements Listener, CommandExecutor, TabComp
     private final Map<UUID, Original> originals = new HashMap<>();
     private final Map<UUID, Long> pending = new HashMap<>();
     private final Map<UUID, Long> nextLookup = new HashMap<>();
+    private final Map<UUID, UUID> shownIds = new HashMap<>();
     private long sequence;
     private volatile boolean closed;
     private Command previousNick;
     private boolean ownsCommand;
+    NicknameIdentity identity;
     record Original(String name, PlayerProfile profile) {}
 
     public NicknameService(TurtleRolesPlugin plugin, PresentationService presentation) {
@@ -35,6 +37,16 @@ public final class NicknameService implements Listener, CommandExecutor, TabComp
         this.plugin=plugin; this.presentation=presentation; this.lookup=lookup;
     }
     public void start() {
+        if(plugin.getConfig().getBoolean("nicknames.client-tier-identity",true)
+                &&Bukkit.getPluginManager().isPluginEnabled("packetevents")) {
+            try {
+                var bridge=new PacketNicknameIdentity();bridge.start();identity=bridge;
+                for(Player p:Bukkit.getOnlinePlayers())bridge.viewer(p.getUniqueId(),ClientCompatibility.bedrock(p));
+                plugin.getLogger().info("Nickname tier identity bridge enabled (PacketEvents).");
+            } catch(LinkageError|RuntimeException error) {
+                plugin.getLogger().warning("Nickname tier identity bridge unavailable: "+error.getMessage());
+            }
+        }
         var command=Objects.requireNonNull(plugin.getCommand("nick"));
         command.setExecutor(this); command.setTabCompleter(this);
         // Essentials is also installed. Own the plain command for correct client suggestions.
@@ -97,12 +109,12 @@ public final class NicknameService implements Listener, CommandExecutor, TabComp
         if(error!=null||profile==null||profile.getId()==null||!profile.hasTextures()||!target.equalsIgnoreCase(profile.getName())) {
             p.sendMessage("Could not find that Minecraft account and skin. Your identity was not changed.");return;
         }
-        if(occupied(p,profile.getName())){p.sendMessage("That player joined or the nickname was taken. Your identity was not changed.");return;}
+        if(occupied(p,profile.getName())||Bukkit.getPlayer(profile.getId())!=null){p.sendMessage("That player joined or the nickname was taken. Your identity was not changed.");return;}
         originals.computeIfAbsent(id,ignored->new Original(p.getName(),p.getPlayerProfile().clone()));
         // Paper refreshes tab, entity tracking and the player's own skin without touching inventory.
         PlayerProfile cosmetic=profile.clone();cosmetic.setId(id);
         try {
-            p.setPlayerProfile(cosmetic);presentation.refreshAll();
+            apply(p,cosmetic,profile.getId());presentation.refreshAll();
             plugin.getLogger().info("Nickname: "+realName(p)+" ("+id+") is now shown as "+profile.getName());
             p.sendMessage("You now appear as "+profile.getName()+". Use /nick reset to restore your name and skin.");
         } catch(RuntimeException ex) {
@@ -114,25 +126,49 @@ public final class NicknameService implements Listener, CommandExecutor, TabComp
         for(Player other:Bukkit.getOnlinePlayers())if(other!=subject&&(name.equalsIgnoreCase(other.getName())||name.equalsIgnoreCase(realName(other))))return true;
         return false;
     }
+    private void apply(Player p,PlayerProfile profile,UUID shown) {
+        if(shown==null)shownIds.remove(p.getUniqueId());else shownIds.put(p.getUniqueId(),shown);
+        if(identity==null){p.setPlayerProfile(profile);return;}
+        List<Player> viewers=new ArrayList<>();
+        try {
+            for(Player viewer:Bukkit.getOnlinePlayers())if(viewer!=p&&viewer.canSee(p)) {
+                viewers.add(viewer);viewer.hidePlayer(plugin,p);
+            }
+            identity.set(p.getUniqueId(),shown);
+            p.setPlayerProfile(profile);
+        } finally {
+            for(Player viewer:viewers)viewer.showPlayer(plugin,p);
+        }
+    }
     void reset(Player p,String message) {
         pending.remove(p.getUniqueId());
         Original original=originals.get(p.getUniqueId());
         if(original!=null) {
             PlayerProfile restored=original.profile().clone(); restored.setId(p.getUniqueId());
-            p.setPlayerProfile(restored);originals.remove(p.getUniqueId());presentation.refreshAll();
+            apply(p,restored,null);originals.remove(p.getUniqueId());presentation.refreshAll();
         }
         if(message!=null)p.sendMessage(message);
     }
+    @EventHandler(priority=EventPriority.LOWEST) public void login(PlayerLoginEvent e) {
+        // Reset before the joining account's first player-info packets, not only at join.
+        clearCollision(e.getPlayer());
+        if(identity!=null)identity.viewer(e.getPlayer().getUniqueId(),ClientCompatibility.bedrock(e.getPlayer()));
+    }
     @EventHandler(priority=EventPriority.LOWEST) public void joined(PlayerJoinEvent e) {
+        clearCollision(e.getPlayer());
+    }
+    private void clearCollision(Player arriving) {
         // Run before other join listeners can overwrite presentation or duplicate-name lookups.
-        String name=e.getPlayer().getName();
+        String name=arriving.getName();
         for(Player other:List.copyOf(Bukkit.getOnlinePlayers())) {
-            if(other!=e.getPlayer()&&originals.containsKey(other.getUniqueId())&&other.getName().equalsIgnoreCase(name))
+            if(other!=arriving&&originals.containsKey(other.getUniqueId())&&(other.getName().equalsIgnoreCase(name)
+                    ||arriving.getUniqueId().equals(shownIds.get(other.getUniqueId()))))
                 reset(other,"Your nickname was reset because the real "+name+" joined.");
         }
     }
     @EventHandler(priority=EventPriority.LOWEST) public void quit(PlayerQuitEvent e) {
         reset(e.getPlayer(),null);nextLookup.remove(e.getPlayer().getUniqueId());
+        if(identity!=null)identity.forgetViewer(e.getPlayer().getUniqueId());
     }
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true) public void command(PlayerCommandPreprocessEvent e) {
         String[] parts=e.getMessage().substring(1).trim().split("\\s+");
@@ -150,7 +186,8 @@ public final class NicknameService implements Listener, CommandExecutor, TabComp
     @Override public void close() {
         closed=true;pending.clear();
         for(Player p:List.copyOf(Bukkit.getOnlinePlayers()))reset(p,null);
-        originals.clear();nextLookup.clear();
+        if(identity!=null){identity.close();identity=null;}
+        originals.clear();nextLookup.clear();shownIds.clear();
         if(ownsCommand) {
             var commands=Bukkit.getCommandMap().getKnownCommands();
             if(commands.get("nick")==plugin.getCommand("nick")) {

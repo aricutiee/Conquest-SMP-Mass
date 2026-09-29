@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "dev.turtleroles"
-version = "3.18.0"
+version = "3.18.1"
 
 java {
     toolchain {
@@ -32,6 +32,9 @@ configurations {
 }
 
 dependencies {
+    compileOnly("com.github.retrooper:packetevents-api:2.14.0") { isTransitive = false }
+    testImplementation("com.github.retrooper:packetevents-api:2.14.0") { isTransitive = false }
+    testImplementation("com.github.retrooper:packetevents-netty-common:2.14.0") { isTransitive = false }
     compileOnly("io.papermc.paper:paper-api:$paperVersion")
     compileOnly("ac.grim.grimac:GrimAPI:1.2.4.0") { isTransitive = false }
     testImplementation("ac.grim.grimac:GrimAPI:1.2.4.0") { isTransitive = false }
