@@ -8,6 +8,9 @@ description: Conquest SMP races, utilities, events, TurtleRoles and KingsCrown i
 softdepend: [KingsCrown, GrimAC, floodgate, AuthMe, Essentials, EssentialsSpawn, packetevents]
 
 commands:
+  setword:
+    description: Create and manage large floating small-caps labels.
+    usage: /setword <color> <text>
   nick:
     description: Copy a Minecraft name and skin, reset, or inspect nicknames as staff.
     usage: /nick <username|reset|check [player]>
@@ -142,6 +145,9 @@ commands:
     permission: serverutil.staffchat
 
 permissions:
+  conquest.setword.admin:
+    description: Manage floating sky words.
+    default: op
   conquest.leaderboard.admin:
     default: op
     description: Place and remove leaderboard displays.

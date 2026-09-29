@@ -41,6 +41,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
     private dev.biomeraces.RaceModule races;
     private dev.turtleroles.survival.ConquestDragon dragons;
     private dev.turtleroles.survival.Leaderboards leaderboards;
+    private dev.turtleroles.service.SkyWords skyWords;
     private dev.turtleroles.combat.ConquestCombat combat;
     private dev.turtleroles.survival.SurvivalModule survival;
     private dev.turtleroles.events.LootDrops lootDrops;
@@ -189,6 +190,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         dragons.start();
         leaderboards=new dev.turtleroles.survival.Leaderboards(this);
         leaderboards.start();
+        skyWords=new dev.turtleroles.service.SkyWords(this);skyWords.start();
         lootDrops = new dev.turtleroles.events.LootDrops(this);
         lootDrops.start();
         deathChests = new dev.turtleroles.survival.DeathChests(this);
@@ -239,6 +241,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         if (packs != null) packs.close();
         if (combat != null) combat.close();
         if (leaderboards != null) leaderboards.close();
+        if (skyWords != null) skyWords.close();
         if (dragons != null) dragons.close();
         if (lootDrops != null) lootDrops.close();
         if (survival != null) survival.close();
