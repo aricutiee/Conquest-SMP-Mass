@@ -49,6 +49,77 @@ class ConquestCombatTest {
         var event = new EntityDamageByEntityEvent(attacker, victim, EntityDamageEvent.DamageCause.ENTITY_ATTACK, amount);
         server.getPluginManager().callEvent(event); return event;
     }
+    @Test void enchantedAppleCooldownPersistsAndDoesNotAffectNormalApples() {
+        var first=new PlayerItemConsumeEvent(a,new ItemStack(Material.ENCHANTED_GOLDEN_APPLE));
+        server.getPluginManager().callEvent(first);assertFalse(first.isCancelled());
+        var second=new PlayerItemConsumeEvent(a,new ItemStack(Material.ENCHANTED_GOLDEN_APPLE));
+        server.getPluginManager().callEvent(second);assertTrue(second.isCancelled());
+        var ordinary=new PlayerItemConsumeEvent(a,new ItemStack(Material.GOLDEN_APPLE));
+        server.getPluginManager().callEvent(ordinary);assertFalse(ordinary.isCancelled());
+        ConquestCombat restored=new ConquestCombat(host,settings,now::get);
+        now.addAndGet(59_999);var blocked=new PlayerItemConsumeEvent(a,new ItemStack(Material.ENCHANTED_GOLDEN_APPLE));restored.appleCheck(blocked);assertTrue(blocked.isCancelled());
+        now.incrementAndGet();var ready=new PlayerItemConsumeEvent(a,new ItemStack(Material.ENCHANTED_GOLDEN_APPLE));restored.appleCheck(ready);assertFalse(ready.isCancelled());
+    }
+    @Test void cancelledConsumptionDoesNotStartAppleCooldown() {
+        var cancelled=new PlayerItemConsumeEvent(a,new ItemStack(Material.ENCHANTED_GOLDEN_APPLE));cancelled.setCancelled(true);server.getPluginManager().callEvent(cancelled);
+        var next=new PlayerItemConsumeEvent(a,new ItemStack(Material.ENCHANTED_GOLDEN_APPLE));combat.appleCheck(next);assertFalse(next.isCancelled());
+    }
+    @Test void containerTotemShiftAndHotbarTransfersRespectLimit() {
+        var inv=server.createInventory(null,27);inv.setItem(0,new ItemStack(Material.TOTEM_OF_UNDYING));
+        var real=server.addPlayer("totemTester");real.getInventory().setItem(0,new ItemStack(Material.TOTEM_OF_UNDYING));real.getInventory().setItemInOffHand(new ItemStack(Material.TOTEM_OF_UNDYING));real.openInventory(inv);
+        var shift=new org.bukkit.event.inventory.InventoryClickEvent(real.getOpenInventory(),org.bukkit.event.inventory.InventoryType.SlotType.CONTAINER,0,org.bukkit.event.inventory.ClickType.SHIFT_LEFT,org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY);
+        new TotemLimit(host).click(shift);assertTrue(shift.isCancelled());
+        var swap=new org.bukkit.event.inventory.InventoryClickEvent(real.getOpenInventory(),org.bukkit.event.inventory.InventoryType.SlotType.CONTAINER,0,org.bukkit.event.inventory.ClickType.NUMBER_KEY,org.bukkit.event.inventory.InventoryAction.HOTBAR_SWAP,0);
+        new TotemLimit(host).click(swap);assertFalse(swap.isCancelled());
+    }
+    @Test void excessTotemsDropWithoutDeletingAndPreserveOffhand() {
+        var real=server.addPlayer("overflow");real.getInventory().setItemInOffHand(new ItemStack(Material.TOTEM_OF_UNDYING));real.getInventory().setItem(0,new ItemStack(Material.TOTEM_OF_UNDYING));real.getInventory().setItem(1,new ItemStack(Material.TOTEM_OF_UNDYING));
+        long before=real.getWorld().getEntitiesByClass(Item.class).size();new TotemLimit(host).enforce(real);
+        assertEquals(2,TotemLimit.carried(real));assertEquals(Material.TOTEM_OF_UNDYING,real.getInventory().getItemInOffHand().getType());assertEquals(before+1,real.getWorld().getEntitiesByClass(Item.class).size());
+    }
+    @Test void thirdTotemPickupIsBlockedIncludingOffhand() {
+        a.getInventory().setItem(0,new ItemStack(Material.TOTEM_OF_UNDYING));a.getInventory().setItemInOffHand(new ItemStack(Material.TOTEM_OF_UNDYING));
+        var item=mock(Item.class);when(item.getItemStack()).thenReturn(new ItemStack(Material.TOTEM_OF_UNDYING));
+        var e=new EntityPickupItemEvent(a,item,0);new TotemLimit(host).pickup(e);assertTrue(e.isCancelled());
+        a.getInventory().setItem(0,null);var allowed=new EntityPickupItemEvent(a,item,0);new TotemLimit(host).pickup(allowed);assertFalse(allowed.isCancelled());
+    }
+    @Test void mutualPublicTruceNeedsBothOpponentsAndPreservesThirdPartyCombat() {
+        Player c=player("c");hit(a,b,2);hit(a,c,2);
+        combat.offerTruce(a);assertTrue(combat.tagged(a));assertTrue(combat.tagged(b));
+        combat.offerTruce(b);assertFalse(combat.tagged(b));assertTrue(combat.tagged(a));assertTrue(combat.tagged(c));
+        combat.offerTruce(c);assertFalse(combat.tagged(a));assertFalse(combat.tagged(c));
+    }
+    @Test void freshDamageRevokesOldTruceOfferAndRestartKeepsOpponentLinks() {
+        hit(a,b,2);combat.offerTruce(a);hit(b,a,1);combat.offerTruce(b);assertTrue(combat.tagged(a));
+        ConquestCombat restored=new ConquestCombat(host,settings,now::get);
+        restored.offerTruce(a);assertTrue(restored.tagged(a));restored.offerTruce(b);
+        assertFalse(restored.tagged(a));assertFalse(restored.tagged(b));
+    }
+    @Test void truceOnlyRecognizesStandalonePhrases() {
+        for(String phrase:java.util.List.of("my bad","MB", "bro!", "mb og", " My   Bad. "))assertTrue(ConquestCombat.trucePhrase(phrase),phrase);
+        for(String phrase:java.util.List.of("not my bad","bro is cheating","mbog","/msg Bob mb","good game"))assertFalse(ConquestCombat.trucePhrase(phrase),phrase);
+    }
+    @Test void taggingHappyGhastRiderDismountsThemAndMountIsBlocked() {
+        HappyGhast ghast=mock(HappyGhast.class);when(a.getVehicle()).thenReturn(ghast);
+        hit(a,b,2);verify(a).leaveVehicle();
+        HappyGhasts listener=new HappyGhasts(host,combat);
+        var mount=new org.bukkit.event.entity.EntityMountEvent(a,ghast);listener.mount(mount);assertTrue(mount.isCancelled());
+        now.addAndGet(45_000);var later=new org.bukkit.event.entity.EntityMountEvent(a,ghast);listener.mount(later);assertFalse(later.isCancelled());
+    }
+    @Test void happyGhastModifiersDoNotStackOnReloadOrRestoreFullHealth() {
+        HappyGhast ghast=mock(HappyGhast.class);
+        var health=mock(org.bukkit.attribute.AttributeInstance.class);var speed=mock(org.bukkit.attribute.AttributeInstance.class);
+        when(ghast.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH)).thenReturn(health);
+        when(ghast.getAttribute(org.bukkit.attribute.Attribute.FLYING_SPEED)).thenReturn(speed);
+        when(health.getValue()).thenReturn(20.0,100.0);when(ghast.getHealth()).thenReturn(10.0);
+        HappyGhasts.apply(ghast);
+        var capture=ArgumentCaptor.forClass(org.bukkit.attribute.AttributeModifier.class);verify(health).addModifier(capture.capture());
+        assertEquals(4.0,capture.getValue().getAmount());verify(ghast).setHealth(50.0);
+        when(health.getModifier(any(NamespacedKey.class))).thenReturn(capture.getValue());
+        var speedCapture=ArgumentCaptor.forClass(org.bukkit.attribute.AttributeModifier.class);verify(speed).addModifier(speedCapture.capture());assertEquals(2.0,speedCapture.getValue().getAmount());
+        when(speed.getModifier(any(NamespacedKey.class))).thenReturn(speedCapture.getValue());
+        HappyGhasts.apply(ghast);verify(health,times(1)).addModifier(any());verify(speed,times(1)).addModifier(any());verify(ghast,times(1)).setHealth(anyDouble());
+    }
     @Test void burningArrowsCannotIgnitePlayersButOtherFireStillWorks() {
         for(AbstractArrow arrow:new AbstractArrow[]{mock(Arrow.class),mock(SpectralArrow.class)}) {
             var e=new EntityCombustByEntityEvent(arrow,b,5f);server.getPluginManager().callEvent(e);assertTrue(e.isCancelled());

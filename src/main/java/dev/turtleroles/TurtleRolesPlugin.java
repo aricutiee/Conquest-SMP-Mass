@@ -131,6 +131,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         PolicyService policy = new PolicyService(config.helperMuteLimit(), config.moderatorMuteLimit(), config.moderatorBanLimit());
         RoleService roles = new RoleService(this, players);
         roleService = roles;
+        getServer().getPluginManager().registerEvents(new dev.turtleroles.service.ConquestPluginList(), this);
         getServer().getPluginManager().registerEvents(new dev.turtleroles.service.AlertPing(this), this);
         getServer().getPluginManager().registerEvents(new dev.turtleroles.service.CustomItemNames(this), this);
         getServer().getPluginManager().registerEvents(new dev.turtleroles.service.ConquestMotd(this), this);
@@ -158,6 +159,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         eventSystem = new EventSystem(this, roles);
         new dev.turtleroles.migration.RetiredShockCleanup(this).start();
 
+        new dev.turtleroles.gui.StaffLogs(this, roles);
         RoleCommand roleCommand = new RoleCommand(roles, players, policy, menus, presentation, config);
         setExecutor("role", roleCommand);
         setTabCompleter("role", roleCommand);

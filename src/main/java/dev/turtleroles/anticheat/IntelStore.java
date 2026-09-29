@@ -60,6 +60,22 @@ public final class IntelStore implements AutoCloseable {
             } return List.copyOf(result);
         });
     }
+    /** Each source retains its own latest result, regardless of other sources' traffic. */
+    public CompletableFuture<List<Entry>> summary(UUID player) {
+        return submit(()-> {
+            var result=new ArrayList<Entry>();
+            for(String source:List.of("ALT","CLIENT","GRIM")) {
+                try(var p=database().prepareStatement("SELECT time,name,detail FROM evidence WHERE player=? AND source=? AND time>=? ORDER BY time DESC LIMIT 1")) {
+                    p.setString(1,player.toString());p.setString(2,source);p.setLong(3,System.currentTimeMillis()-Duration.ofDays(30).toMillis());
+                    try(var rs=p.executeQuery()){if(rs.next())result.add(new Entry(rs.getLong(1),player,rs.getString(2),source,rs.getString(3)));}
+                }
+            }
+            return List.copyOf(result);
+        });
+    }
+    public CompletableFuture<ModDetectorReport.Result> mods(Path path,UUID player) {
+        return submit(()->ModDetectorReport.read(path,player));
+    }
     public static String clean(String s,int max) {
         if(s==null)return "unknown";
         s=s.replaceAll("[\\p{Cntrl}§]", " ");return s.substring(0,Math.min(max,s.length()));

@@ -400,3 +400,16 @@ Sidebar labels and numbers now match /setword purple (#B477FF). The Conquest SMP
 
 
 3.21.1: TNT minecart explosions do no player damage; ordinary TNT player damage is halved before armor and other defenses. Mob and terrain damage are unchanged.
+
+
+## Update 3.24.2: staff logs and combat rules
+
+Use `/staff logs` for staff heads, real usernames, ranks and moderation-action counts. Click a head to browse All logs, Past 7 days or Today. Read UPDATE-3.24.2.md for history coverage and the configurable date boundary.
+
+The carrying limit is two accessible totems, including the offhand. Enchanted golden apples may be carried in any quantity but eaten only once per 60 seconds, with a purple boss-bar timer. Existing staff gameplay bypass still applies.
+
+Happy Ghasts have five times their default maximum health and three times their default flying-speed attribute. Combat-tagged players cannot mount one and are dismounted when tagged.
+
+Two opponents can mutually end their combat link by each saying `my bad`, `mb`, `bro`, `mb og` or `og` as a standalone public-chat message. New damage withdraws previous offers. Other opponents remain tagged. A tip appears on one third of fresh combat entries.
+
+`/conquestac <player>` now gives a short verdict, alt-match status, recent Grim flags and suspicious mod names. `/conquestac details <player>` retains the evidence. Detection is not proof of cheating, and no detected-mod join blocks were added. In-game `/plugins` and `/pl`, including namespaced forms, display Conquest branding for all players.

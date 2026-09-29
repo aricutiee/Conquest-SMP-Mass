@@ -12,6 +12,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.TextColor;
 import java.time.*;
+import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,6 +23,8 @@ public final class ConquestIntel implements Listener, AutoCloseable {
     private final IntelStore store;
     private AutoCloseable alt;
     private ClientBinding client;
+    private boolean grimConnected;
+    public void grimConnected(boolean ready){grimConnected=ready;}
     private BukkitTask poll;
     private volatile boolean closed;
     private final Map<UUID,String> snapshots=new HashMap<>();
@@ -76,7 +79,7 @@ public final class ConquestIntel implements Listener, AutoCloseable {
         store.add(new IntelStore.Entry(now,id,name,source,detail));
         if(alert) sync(()-> {
             var message=Component.text("[ConquestAC] ",TextColor.color(0xAC66E8))
-                .append(Component.text(IntelStore.clean(name,32)+" | "+source+" observation. ",TextColor.color(0xD7BBF5)))
+                .append(Component.text(IntelStore.clean(name,32)+" | "+(source.equals("ALT")?"Possible alt account":source.equals("CLIENT")?"Suspicious mods: "+IntelVerdict.field(detail,"policy matches="):"Suspicious activity")+". ",TextColor.color(0xD7BBF5)))
                 .append(Component.text("[Inspect]",TextColor.color(0xC084FC)).clickEvent(ClickEvent.runCommand("/conquestac inspect "+id)));
             for(Player staff:plugin.getServer().getOnlinePlayers())if(staff.hasPermission("conquest.anticheat.alerts"))staff.sendMessage(message);
         });
@@ -84,10 +87,11 @@ public final class ConquestIntel implements Listener, AutoCloseable {
     private void sync(Runnable task){if(!closed&&plugin.isEnabled())plugin.getServer().getScheduler().runTask(plugin,()->{if(!closed)task.run();});}
     public void status(CommandSender sender) {
         sender.sendMessage("ConquestAC evidence: AltDetector="+(alt!=null?"connected":"unavailable")+", ClientPolicy="+(client!=null?"connected":"unavailable")+". Local history: 30 days.");
-        sender.sendMessage("Use /conquestac inspect <player>, /conquestac alts <player>, /conquestac client <player>. Matches and flags require staff review.");
+        sender.sendMessage("Use /conquestac <player> for a short report. /conquestac details <player> shows saved evidence.");
     }
     public boolean command(CommandSender sender,String[] args) {
-        if(args.length!=2 || !Set.of("inspect","alts","client").contains(args[0].toLowerCase(Locale.ROOT)))return false;
+        if(args.length==1)args=new String[]{"inspect",args[0]};
+        if(args.length!=2 || !Set.of("inspect","check","details","alts","client").contains(args[0].toLowerCase(Locale.ROOT)))return false;
         UUID id=null;String name=null;
         try{id=UUID.fromString(args[1]);}catch(IllegalArgumentException ignored){}
         if(id!=null){name=Optional.ofNullable(Bukkit.getOfflinePlayer(id).getName()).orElse(args[1]);}
@@ -96,24 +100,59 @@ public final class ConquestIntel implements Listener, AutoCloseable {
             if(target!=null){id=target.getUniqueId();name=target.getName();}
         }
         if(id==null){sender.sendMessage("Unknown player. Use their real account name or UUID, not their nickname.");return true;}
-        if(!args[0].equalsIgnoreCase("inspect")) {
-            String dependency=args[0].equalsIgnoreCase("alts")?"AltDetector":"ClientPolicy";
-            if(!plugin.getServer().getPluginManager().isPluginEnabled(dependency)){sender.sendMessage(dependency+" is unavailable.");return true;}
-            // Dispatch as the requesting staff member, never as console or with elevated permissions.
-            String cmd=args[0].equalsIgnoreCase("alts")?"altdetector:alt "+name:"clientpolicy:clientpolicy inspect "+name;
-            plugin.getServer().dispatchCommand(sender,cmd);return true;
+        if(!args[0].equalsIgnoreCase("details")) {
+            Player online=Bukkit.getPlayer(id);
+            long sessionStart=online==null?System.currentTimeMillis()-Duration.ofHours(24).toMillis():online.getLastLogin();
+            // Refresh volunteered client context on the server thread, without enforcement.
+            IntelStore.Entry current=null;
+            if(client!=null && online!=null)try {
+                var snapshot=client.snapshot(online);
+                if(snapshot!=null)current=new IntelStore.Entry(System.currentTimeMillis(),id,name,"CLIENT",snapshot.detail());
+            }catch(RuntimeException|LinkageError ignored){}
+            final IntelStore.Entry live=current;final UUID target=id;final String label=name;
+            Path log=modLog();
+            store.summary(id).thenCombine(store.mods(log,id),(entries,mods)-> {
+                var copy=new ArrayList<>(entries);if(live!=null){copy.removeIf(e->e.source().equals("CLIENT"));copy.add(live);}
+                return new Report(copy,mods);
+            }).whenComplete((report,error)->sync(()-> {
+                if(sender instanceof Player p && (!p.isOnline()||!p.hasPermission("conquest.anticheat.status")))return;
+                if(error!=null){sender.sendMessage("Conquest AC: check unavailable. Please try again.");return;}
+                sender.sendMessage(Component.text("Conquest AC | "+label+(online==null?" (offline)":""),TextColor.color(0xB477FF)));
+                var lines=IntelVerdict.lines(report.entries(),report.mods(),System.currentTimeMillis(),sessionStart,
+                    alt!=null,grimConnected,client!=null);
+                for(String line:lines) {
+                    var text=Component.text(line,TextColor.color(line.startsWith("Verdict")?0xB477FF:0xD7BBF5));
+                    if(line.contains("[Details]"))text=text.clickEvent(ClickEvent.runCommand("/conquestac details "+target));
+                    sender.sendMessage(text);
+                }
+            }));return true;
         }
-        sender.sendMessage("ConquestAC dossier: "+name+" ("+id+")");
-        sender.sendMessage("ALT = suspected links; CLIENT = volunteered context; GRIM = anti-cheat flags, not a verdict. Latest 12 observations:");
+        sender.sendMessage("Conquest AC details: "+name+" ("+id+")");
+        sender.sendMessage("Latest 12 saved observations:");
         UUID target=id;
-        store.recent(target).whenComplete((entries,error)->sync(()-> {
+        store.recent(target).thenCombine(store.mods(modLog(),target),Report::new).whenComplete((report,error)->sync(()-> {
             if(sender instanceof Player p && (!p.isOnline()||!p.hasPermission("conquest.anticheat.status")))return;
             if(error!=null){sender.sendMessage("Evidence storage unavailable. Check server logs.");return;}
+            var entries=report.entries();
             if(entries.isEmpty())sender.sendMessage("No recorded observations in the last 30 days.");
             for(var e:entries)sender.sendMessage(Component.text("["+DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(e.time()))+"] "+e.source()+": ",TextColor.color(0xAC66E8))
                 .append(Component.text(e.detail(),TextColor.color(0xD7BBF5))));
+            var mods=report.mods();
+            if(mods.time()>0)sender.sendMessage("ModDetector last scan: "+Instant.ofEpochMilli(mods.time())+" | Suspicious signals: "+(mods.suspicious().isEmpty()?"none":String.join(", ",mods.suspicious())));
+            else sender.sendMessage("ModDetector: no matching scan data available.");
         }));return true;
     }
+    private Path modLog(){
+        var mod=plugin.getServer().getPluginManager().getPlugin("ModDetector");Path log=null;
+        if(mod!=null && mod.isEnabled()) {
+            var config=org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(new java.io.File(mod.getDataFolder(),"config.yml"));
+            Path folder=mod.getDataFolder().toPath().toAbsolutePath().normalize();
+            Path candidate=folder.resolve(config.getString("detections-log.file","detections.jsonl")).normalize();
+            if(config.getBoolean("detections-log.enabled",true)&&candidate.startsWith(folder))log=candidate;
+        }
+        return log;
+    }
+    private record Report(List<IntelStore.Entry> entries,ModDetectorReport.Result mods) {}
     private void closeAlt(){if(alt!=null){try{alt.close();}catch(Exception ignored){}alt=null;}}
     @Override public void close(){closed=true;if(poll!=null)poll.cancel();closeAlt();client=null;HandlerList.unregisterAll(this);store.close();}
 }

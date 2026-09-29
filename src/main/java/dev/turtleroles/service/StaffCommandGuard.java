@@ -20,7 +20,7 @@ public final class StaffCommandGuard implements Listener {
         "nick","rtp","npc","afk","shards","leaderboard","setword","string","help","?","list","version","plugins","pl","about","me","msg","tell","w","reply","r",
         "role","tr","invsee","warn","warnings","unwarn","mute","tempmute","unmute","ban","tempban","unban","kick","history","case",
         "gamemode","tp","teleport","tphere","tpa","tpaccept","tpdeny","tpcancel","back","spawn","home","homes","sethome","delhome","enderchest",
-        "smp","kit","race","roll","events","event","warlordevent","warlord","juggernaut","util","report","reports","staffmode","staffchat","sc",
+        "smp","kit","race","roll","events","event","warlordevent","warlord","juggernaut","util","report","reports","staff","staffmode","staffchat","sc",
         "worldspawn","setworldspawn","dimensions","alt","altadmin","clientpolicy","grim","conquestac","ss","admit","heal","feed","fly","speed","clear","give","effect","enchant",
         "kill","damage","experience","xp","time","weather","difficulty","seed","locate","gamerule","worldborder","save-all","save-on","save-off",
         "spawnpoint","setblock","fill","clone","summon","particle","playsound","stopsound","title","tellraw","teammsg"

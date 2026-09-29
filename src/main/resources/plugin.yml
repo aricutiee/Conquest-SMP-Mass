@@ -5,9 +5,12 @@ api-version: '1.21.11'
 load: POSTWORLD
 authors: [ari]
 description: Conquest SMP races, utilities, events, TurtleRoles and KingsCrown integration.
-softdepend: [KingsCrown, GrimAC, AltDetector, ClientPolicy, floodgate, AuthMe, Essentials, EssentialsSpawn, packetevents]
+softdepend: [KingsCrown, GrimAC, AltDetector, ClientPolicy, ModDetector, SimplePluginHider, floodgate, AuthMe, Essentials, EssentialsSpawn, packetevents]
 
 commands:
+  staff:
+    description: Browse recorded staff moderation actions.
+    usage: /staff logs
   string:
     description: Fill empty inventory slots with string, with rank-based cooldowns.
     usage: /string
@@ -67,7 +70,7 @@ commands:
     description: Open the administrator Nether and End access controls.
   conquestac:
     description: Show the Grim integration and non-punitive policy status.
-    usage: /conquestac [inspect|alts|client <player>]
+    usage: /conquestac [inspect|check|details|alts|client <player>]
     permission: conquest.anticheat.status
   race:
     description: View your race or start your saved first-join roll.
