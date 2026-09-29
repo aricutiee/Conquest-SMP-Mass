@@ -30,15 +30,21 @@ final class SidebarFontGenerator {
         "01110/10001/01110/10001/01110", "01110/10001/01111/00001/11110",
         "0/1/0/1/0", "000/000/111/000/000", "0/0/0/0/1"
     };
-    static int ink() {
-        return 0xFFB477FF;
+    static int ink() { return 0xFFB477FF; }
+    static int ink(int row) {
+        double f=Math.abs(row-2)/2.0;
+        int light=0xC69AFF, dark=0x60308F;
+        int red=(int)Math.round(((dark>>16)&255)*(1-f)+((light>>16)&255)*f);
+        int green=(int)Math.round(((dark>>8)&255)*(1-f)+((light>>8)&255)*f);
+        int blue=(int)Math.round((dark&255)*(1-f)+(light&255)*f);
+        return 0xFF000000|(red<<16)|(green<<8)|blue;
     }
     static void write(Path textures,Path fonts,Path previews) throws IOException {
         BufferedImage atlas=new BufferedImage(16*6,3*8,BufferedImage.TYPE_INT_ARGB);
         for(int i=0;i<CHARS.length();i++) {
             String[] rows=GLYPHS[i].split("/");
             for(int y=0;y<5;y++)for(int x=0;x<rows[y].length();x++)
-                if(rows[y].charAt(x)=='1')atlas.setRGB((i%16)*6+x,(i/16)*8+y+2,ink());
+                if(rows[y].charAt(x)=='1')atlas.setRGB((i%16)*6+x,(i/16)*8+y+2,ink(y));
         }
         ImageIO.write(atlas,"png",textures.resolve("sidebar.png").toFile());
         StringBuilder chars=new StringBuilder();
@@ -52,20 +58,13 @@ final class SidebarFontGenerator {
             chars.append('"');
         }
         Files.writeString(fonts.resolve("sidebar.json"),"{\"providers\":[{\"type\":\"space\",\"advances\":{\" \":3}},{\"type\":\"bitmap\",\"file\":\"turtleroles:font/sidebar.png\",\"height\":8,\"ascent\":7,\"chars\":["+chars+"]}]}\n");
-        BufferedImage ip=new BufferedImage(atlas.getWidth(),atlas.getHeight(),BufferedImage.TYPE_INT_ARGB);
-        for(int y=0;y<atlas.getHeight();y++)for(int x=0;x<atlas.getWidth();x++)if((atlas.getRGB(x,y)>>>24)!=0)ip.setRGB(x,y,0xFFFFFFFF);
-        ImageIO.write(ip,"png",textures.resolve("sidebar_ip.png").toFile());
-        Files.writeString(fonts.resolve("sidebar_ip.json"),Files.readString(fonts.resolve("sidebar.json")).replace("sidebar.png","sidebar_ip.png").replace("\"height\":8","\"height\":10").replace("\"ascent\":7","\"ascent\":8"));
-        BufferedImage title=new BufferedImage(atlas.getWidth(),atlas.getHeight(),BufferedImage.TYPE_INT_ARGB);
-        for(int y=0;y<atlas.getHeight();y++)for(int x=0;x<atlas.getWidth();x++)if((atlas.getRGB(x,y)>>>24)!=0){
-            double f=Math.clamp(((y%8)-2)/4.0,0,1);int top=0xB78AFF,bottom=0x29143D;
-            int red=(int)Math.round(((top>>16)&255)*(1-f)+((bottom>>16)&255)*f),green=(int)Math.round(((top>>8)&255)*(1-f)+((bottom>>8)&255)*f),blue=(int)Math.round((top&255)*(1-f)+(bottom&255)*f);
-            title.setRGB(x,y,0xFF000000|(red<<16)|(green<<8)|blue);
-        }
-        ImageIO.write(title,"png",textures.resolve("sidebar_title.png").toFile());
+        // All sidebar text uses identical five-pixel small-cap geometry and vertical shading.
+        ImageIO.write(atlas,"png",textures.resolve("sidebar_ip.png").toFile());
+        Files.writeString(fonts.resolve("sidebar_ip.json"),Files.readString(fonts.resolve("sidebar.json")).replace("sidebar.png","sidebar_ip.png"));
+        ImageIO.write(atlas,"png",textures.resolve("sidebar_title.png").toFile());
         Files.writeString(fonts.resolve("sidebar_title.json"),Files.readString(fonts.resolve("sidebar.json")).replace("sidebar.png","sidebar_title.png"));
-        String[] demo={"COMBAT","KILLS: 12","DEATHS: 3","STREAK: 4","OTHER","PING: 42MS","PLAYTIME: 2D 7H"};
-        BufferedImage preview=new BufferedImage(110*6,demo.length*10*6,BufferedImage.TYPE_INT_ARGB);
+        String[] demo={"CONQUEST SMP","IP: CONQUESTSMP.NET","COMBAT","KILLS: 12","DEATHS: 3","STREAK: 4","OTHER","PING: 42MS","PLAYTIME: 2D 7H"};
+        BufferedImage preview=new BufferedImage(130*6,demo.length*10*6,BufferedImage.TYPE_INT_ARGB);
         var g=preview.createGraphics();g.setColor(new java.awt.Color(0x202028));g.fillRect(0,0,preview.getWidth(),preview.getHeight());
         for(int line=0;line<demo.length;line++) {
             int cursor=2;
@@ -73,11 +72,11 @@ final class SidebarFontGenerator {
                 if(c==' '){cursor+=3;continue;}
                 String[] rows=GLYPHS[CHARS.indexOf(c)].split("/");
                 for(int y=0;y<5;y++)for(int x=0;x<rows[y].length();x++)if(rows[y].charAt(x)=='1'){
-                    g.setColor(new java.awt.Color(ink(),true));g.fillRect((cursor+x)*6,(line*10+y+2)*6,6,6);
+                    g.setColor(new java.awt.Color(ink(y),true));g.fillRect((cursor+x)*6,(line*10+y+2)*6,6,6);
                 }
                 cursor+=rows[0].length()+1;
             }
         }
-        g.dispose();ImageIO.write(preview,"png",previews.resolve("sidebar-solid.png").toFile());
+        g.dispose();ImageIO.write(preview,"png",previews.resolve("sidebar-gradient.png").toFile());
     }
 }
