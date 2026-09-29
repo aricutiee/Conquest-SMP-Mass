@@ -45,7 +45,7 @@ final class SurvivalSidebar implements AutoCloseable {
                 Component.text("◆ ",PURPLE).append(letters("Shards: ",icons).decorate(TextDecoration.BOLD)).append(letters(Long.toString(shards.applyAsLong(player)),icons).decoration(TextDecoration.BOLD,false)),
                 stat(3,"Ping",player.getPing()+"ms",icons),
                 stat(4,"Playtime",duration(Integer.toUnsignedLong(player.getStatistic(Statistic.PLAY_ONE_MINUTE))/20),icons),
-                heading("IP: CONQUESTSMP.NET",icons),rule};
+                Component.text(icons?"IP: CONQUESTSMP.NET":smallCaps("IP: ConquestSMP.net"),TextColor.color(0x9655D9)).font(Key.key(icons?"turtleroles:sidebar_ip":"minecraft:default")).decorate(TextDecoration.BOLD),rule};
         for(int i=0;i<lines.length;i++)view.lines.get(i).prefix(lines[i]);
         // A grace-period objective can temporarily occupy the sidebar without being overwritten.
         if(view.board.getObjective(DisplaySlot.SIDEBAR)==null)view.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
@@ -54,7 +54,7 @@ final class SurvivalSidebar implements AutoCloseable {
         return letters(text,custom).decorate(TextDecoration.BOLD);
     }
     static Component letters(String text,boolean custom) {
-        // White tint preserves each glyph's light-dark-light vertical gradient.
+        // White tint preserves the bitmap's original purple.
         return custom ? Component.text(text.toUpperCase(Locale.ROOT),TextColor.color(0xFFFFFF)).font(SIDEBAR_FONT)
                 : Component.text(smallCaps(text),PURPLE).font(Key.key("minecraft:default"));
     }
