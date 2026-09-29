@@ -49,6 +49,17 @@ class ConquestCombatTest {
         var event = new EntityDamageByEntityEvent(attacker, victim, EntityDamageEvent.DamageCause.ENTITY_ATTACK, amount);
         server.getPluginManager().callEvent(event); return event;
     }
+    @Test void burningArrowsCannotIgnitePlayersButOtherFireStillWorks() {
+        for(AbstractArrow arrow:new AbstractArrow[]{mock(Arrow.class),mock(SpectralArrow.class)}) {
+            var e=new EntityCombustByEntityEvent(arrow,b,5f);server.getPluginManager().callEvent(e);assertTrue(e.isCancelled());
+        }
+        var trident=new EntityCombustByEntityEvent(mock(Trident.class),b,5f);server.getPluginManager().callEvent(trident);assertFalse(trident.isCancelled());
+        var lava=new EntityCombustByBlockEvent(b.getWorld().getBlockAt(0,0,0),b,5f);server.getPluginManager().callEvent(lava);assertFalse(lava.isCancelled());
+        var melee=new EntityCombustByEntityEvent(a,b,5f);server.getPluginManager().callEvent(melee);assertFalse(melee.isCancelled());
+        var mob=new EntityCombustByEntityEvent(mock(Arrow.class),mock(Zombie.class),5f);server.getPluginManager().callEvent(mob);assertFalse(mob.isCancelled());
+        verify(b,never()).setFireTicks(anyInt());
+        var damage=hit(mock(Arrow.class),b,4);assertFalse(damage.isCancelled());assertEquals(4,damage.getDamage());
+    }
     @Test void bothPlayersTaggedAndRefreshForExactly45Seconds() {
         hit(a,b,2); assertTrue(combat.tagged(a)); assertTrue(combat.tagged(b));
         now.addAndGet(44_999); assertTrue(combat.tagged(a));

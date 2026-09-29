@@ -21,6 +21,11 @@ import java.util.function.LongSupplier;
 
 /** PvP timers persist in player data. No inventory removal, punishment or synthetic damage. */
 public final class ConquestCombat implements Listener, AutoCloseable {
+    @EventHandler(priority=EventPriority.HIGHEST, ignoreCancelled=true)
+    public void arrowIgnition(EntityCombustByEntityEvent event) {
+        if(event.getEntity() instanceof Player && (event.getCombuster() instanceof Arrow || event.getCombuster() instanceof SpectralArrow))
+            event.setCancelled(true);
+    }
     private static final NamespacedKey TAG = new NamespacedKey("conquestsmp", "combat_until");
     private static final NamespacedKey MACE = new NamespacedKey("conquestsmp", "mace_until");
     private static final NamespacedKey GLIDING = new NamespacedKey("conquestsmp", "was_gliding");
