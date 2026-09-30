@@ -42,6 +42,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
     private dev.turtleroles.service.SpawnNpcs spawnNpcs;
     private dev.turtleroles.service.VirtualSpawners virtualSpawners;
     private dev.turtleroles.service.RankStringCommand rankString;
+    private dev.turtleroles.service.OwnerTrollMode ownerTrollMode;
     private dev.turtleroles.service.FakePlayers fakePlayers;
     public dev.turtleroles.service.VirtualSpawners virtualSpawners(){return virtualSpawners;}
     public dev.biomeraces.RaceModule races(){return races;}
@@ -218,6 +219,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         anticheat.start();
         getServer().getPluginManager().registerEvents(new dev.turtleroles.combat.WeaponDamageCaps(this),this);
         fakePlayers=new dev.turtleroles.service.FakePlayers(this);fakePlayers.start();
+        ownerTrollMode=new dev.turtleroles.service.OwnerTrollMode(this);ownerTrollMode.start();
         roles.reconcileOnlineOps();
         getServer().getOnlinePlayers().forEach(packs::sendOnJoin);
         getLogger().info("Conquest SMP enabled: roles, badges, moderation and ServerUtil administration are running in one plugin.");
@@ -250,6 +252,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
 
     @Override
     public void onDisable() {
+        if(ownerTrollMode!=null)ownerTrollMode.close();
         if(fakePlayers!=null)fakePlayers.close();
         if (nicknames != null) nicknames.close();
         if (boosterKits != null) boosterKits.close();
