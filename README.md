@@ -1,8 +1,8 @@
 # Conquest SMP Mass
 
-Paper 1.21.11 server plugin, maintained by ari. Requires Java 21. Current release: **3.24.7**.
+Paper 1.21.11 server plugin, maintained by ari. Requires Java 21. Current release: **3.24.8**.
 
-This release removes the retired fake-player command and its simulated AFK bodies. Shop NPCs, player AFK rewards, owner troll mode and launch-based analytics remain available. See [the update guide](UPDATE-3.24.7.md), [analytics documentation](ANALYTICS.md) and [the feature catalog](CONQUEST-SYSTEMS.md).
+This release removes the retired fake-player command and its simulated AFK bodies. Shop NPCs, player AFK rewards, owner troll mode and launch-based analytics remain available. See [the update guide](UPDATE-3.24.8.md), [analytics documentation](ANALYTICS.md) and [the feature catalog](CONQUEST-SYSTEMS.md).
 
 ## Build
 

@@ -19,7 +19,7 @@ public final class ShardRewards implements Listener,CommandExecutor,TabCompleter
  static long interval(int tier){return tier>=2?10_000:tier==1?20_000:30_000;}
  public static long interval(Role role,int tier){
   long base=role==Role.COAL?25_000:role==Role.IRON?20_000:role==Role.REDSTONE?15_000:role==Role.DIAMOND?10_000:role==Role.NETHERITE?5_000:30_000;
-  return Math.min(base,interval(tier));
+  return Math.min(base,interval(Math.max(tier,role==Role.BOOSTER_X2?2:role==Role.BOOSTER?1:0)));
  }
  private long interval(Player player){return interval(plugin.roleService().roleOf(player.getUniqueId()),plugin.roleService().boosterTier(player.getUniqueId()));}
  static long reschedule(long now,long next,long previous,long rate){return now+Math.max(0,rate-Math.max(0,previous-(next-now)));}

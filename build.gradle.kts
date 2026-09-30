@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "dev.turtleroles"
-version = "3.24.7"
+version = "3.24.8"
 
 java {
     toolchain {

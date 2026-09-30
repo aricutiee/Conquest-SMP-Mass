@@ -94,7 +94,8 @@ public final class RoleCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(target.lastName() + " is " + roleDescription(target) + " (revision " + target.revision() + ")");
         Role rank=roles.roleOf(target.uuid());int booster=roles.boosterTier(target.uuid());
         sender.sendMessage("Effective benefits: /string " + dev.turtleroles.service.RankStringCommand.seconds(rank,booster)
-            + "s cooldown; AFK 1 shard / " + dev.turtleroles.service.ShardRewards.interval(rank,booster)/1000 + "s; booster tier " + booster + ".");
+            + "s cooldown; AFK 1 shard / " + dev.turtleroles.service.ShardRewards.interval(rank,booster)/1000 + "s; homes " + (dev.turtleroles.service.GameplayBypass.role(rank)?"unlimited":dev.turtleroles.survival.SurvivalModule.homeLimit(rank,booster))
+            + "; teleport wait " + dev.turtleroles.survival.SurvivalModule.teleportWait(rank,booster)/1000 + "s; booster tier " + booster + ".");
     }
 
     private String roleDescription(PlayerRecord record) {

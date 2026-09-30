@@ -21,6 +21,7 @@ final class RandomTeleport implements Listener, AutoCloseable {
     private volatile boolean closed;
     private static final class Request {
         final Player player; final World world; int attempts; BukkitTask timeout;
+        java.util.function.BooleanSupplier valid=()->true; Runnable done=()->{};
         Request(Player player, World world) {this.player=player;this.world=world;}
     }
     RandomTeleport(JavaPlugin plugin, Predicate<Player> combat) {
@@ -29,20 +30,27 @@ final class RandomTeleport implements Listener, AutoCloseable {
     void register(){
         Bukkit.getPluginManager().registerEvents(this,plugin);
     }
-    void start(Player player) {
+    void start(Player player) {start(player,()->true,()->{});}
+    void start(Player player,java.util.function.BooleanSupplier valid,Runnable done) {
+        startInternal(player,valid,done);
+        if(!pending.containsKey(player.getUniqueId()))done.run();
+    }
+    private void startInternal(Player player,java.util.function.BooleanSupplier valid,Runnable done) {
         World world=Bukkit.getWorld("world_terralith");
         if(world==null || world.getEnvironment()!=World.Environment.NORMAL){tell(player,"The Terralith Overworld is unavailable.");return;}
         if(player.getWorld()!=world){tell(player,"Use /rtp in the Terralith Overworld only.");return;}
         if(combat.test(player)){tell(player,"You cannot randomly teleport during combat.");return;}
+        Request previous=pending.get(player.getUniqueId());
+        if(previous!=null&&!previous.valid.getAsBoolean())finish(previous,null);
         if(pending.containsKey(player.getUniqueId())){tell(player,"A safe location is already being found.");return;}
         if(closed)return;
         if(pending.size()>=4){tell(player,"Random teleport is busy. Try again shortly.");return;}
-        Request request=new Request(player,world);pending.put(player.getUniqueId(),request);
+        Request request=new Request(player,world);request.valid=valid;request.done=done;pending.put(player.getUniqueId(),request);
         request.timeout=Bukkit.getScheduler().runTaskLater(plugin,()->finish(request,"Could not find a safe location in time. Please try again."),400);
         tell(player,"Finding a safe location in the Terralith Overworld..."); search(request);
     }
     private boolean active(Request r){return !closed&&pending.get(r.player.getUniqueId())==r;}
-    private boolean eligible(Request r){return r.player.isOnline()&&!r.player.isDead()&&r.player.getWorld()==r.world&&!combat.test(r.player)
+    private boolean eligible(Request r){return r.valid.getAsBoolean()&&r.player.isOnline()&&!r.player.isDead()&&r.player.getWorld()==r.world&&!combat.test(r.player)
         &&dev.turtleroles.service.ClientCompatibility.authenticated(r.player);}
     private void search(Request r) {
         if(!active(r))return;
@@ -88,7 +96,7 @@ final class RandomTeleport implements Listener, AutoCloseable {
     };}
     private static void tell(Player p,String text){p.sendMessage(Component.text(text,NamedTextColor.LIGHT_PURPLE));}
     private void finish(Request r,String message){
-        if(pending.remove(r.player.getUniqueId(),r)){if(r.timeout!=null)r.timeout.cancel();if(message!=null&&r.player.isOnline())tell(r.player,message);}
+        if(pending.remove(r.player.getUniqueId(),r)){r.done.run();if(r.timeout!=null)r.timeout.cancel();if(message!=null&&r.player.isOnline())tell(r.player,message);}
     }
     @EventHandler public void quit(PlayerQuitEvent e){Request r=pending.get(e.getPlayer().getUniqueId());if(r!=null)finish(r,null);}
     @Override public void close(){closed=true;for(Request r:List.copyOf(pending.values()))finish(r,null);HandlerList.unregisterAll(this);}

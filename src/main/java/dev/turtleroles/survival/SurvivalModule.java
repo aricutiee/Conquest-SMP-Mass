@@ -27,11 +27,13 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
     private final TurtleRolesPlugin plugin;
     private final File file;
     final YamlConfiguration data;
-    private final Set<UUID> teleporting = new HashSet<>();
+    private final Map<UUID,Object> teleporting = new HashMap<>();
     private final SurvivalSidebar sidebar;
     private final SpawnProtection protection;
     private final SpawnArea spawnArea;
     private final RandomTeleport rtp;
+    private final TeleportWarmups warmups;
+    private volatile boolean closed;
     public SpawnArea spawnArea(){return spawnArea;}
     boolean bypass(org.bukkit.entity.Entity player){return GameplayBypass.allowed(plugin,player);}
     private boolean allowed(Player player,World world){return bypass(player)||allowed(world);}
@@ -46,9 +48,11 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
         protection = new SpawnProtection(this);
         spawnArea = new SpawnArea(plugin,this);
         rtp = new RandomTeleport(plugin, this::inCombat);
+        warmups = new TeleportWarmups(this::teleportWait, this::inCombat);
     }
     public void start() {
         rtp.register();
+        warmups.register(plugin);
         Bukkit.getPluginManager().registerEvents(this, plugin);
         Bukkit.getPluginManager().registerEvents(protection, plugin);
         Bukkit.getPluginManager().registerEvents(spawnArea,plugin);
@@ -88,6 +92,23 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
     }
     static int homeLimit(Role role) {
         return switch(role) { case COAL, BOOSTER -> 4; case IRON -> 6; case REDSTONE -> 8; case DIAMOND -> 13; case NETHERITE -> 23; case BOOSTER_X2 -> 7; case MEMBER -> 2; default -> role.weight()>=Role.MODERATOR.weight() ? 10 : 6; };
+    }
+    public static int homeLimit(Role role,int boosterTier) {
+        return Math.max(homeLimit(role),boosterTier>=2?7:boosterTier==1?4:2);
+    }
+    private int homeLimit(Player player) {
+        return homeLimit(plugin.roleService().effectiveRoleOf(player.getUniqueId()),plugin.roleService().boosterTier(player.getUniqueId()));
+    }
+    public static long teleportWait(Role role,int boosterTier) {
+        return GameplayBypass.role(role)?0:dev.turtleroles.service.ShardRewards.interval(role,boosterTier);
+    }
+    private long teleportWait(Player player) {
+        return teleportWait(plugin.roleService().effectiveRoleOf(player.getUniqueId()),plugin.roleService().boosterTier(player.getUniqueId()));
+    }
+    private void requestTeleport(Player player,Location target,boolean safety,String label) {
+        if (!allowed(player,target.getWorld())) {message(player,"That dimension is currently closed.");return;}
+        if (!bypass(player)&&!target.getWorld().getWorldBorder().isInside(target)) {message(player,"That destination is outside the world border.");return;}
+        warmups.start(player,label,r->teleport(player,target,safety,r::active,r::finish));
     }
     private boolean admin(Player player) {
         return plugin.roleService().effectiveRoleOf(player.getUniqueId()).weight() >= Role.ADMIN.weight()
@@ -130,11 +151,11 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
                 if (command.getName().equals("home")) {
                     Location location = data.getLocation(path);
                     if (location == null || location.getWorld() == null) message(player,"That home does not exist. Use /homes.");
-                    else teleport(player,location,true);
+                    else requestTeleport(player,location,true,"Home teleport");
                 } else {
                     Location previous = data.getLocation(path);
                     if (command.getName().equals("sethome")) {
-                        int limit = Math.max(homeLimit(plugin.roleService().effectiveRoleOf(player.getUniqueId())), plugin.roleService().boosterTier(player.getUniqueId())==2?7:plugin.roleService().boosterTier(player.getUniqueId())==1?4:2);
+                        int limit = homeLimit(player);
                         if (!bypass(player) && previous == null && homes.size() >= limit) { message(player,"Your rank can set "+limit+" homes. Use /delhome <name> first."); return true; }
                         if (!allowed(player,player.getWorld())) { message(player,"This dimension is closed."); return true; }
                         data.set(path,player.getLocation());
@@ -146,10 +167,10 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
                     else message(player,command.getName().equals("sethome") ? "Home '"+name+"' saved." : "Home '"+name+"' removed.");
                 }
             }
-            case "homes" -> message(player,"Homes ("+homes.size()+"/"+(bypass(player)?"unlimited":Math.max(homeLimit(plugin.roleService().effectiveRoleOf(player.getUniqueId())), plugin.roleService().boosterTier(player.getUniqueId())==2?7:plugin.roleService().boosterTier(player.getUniqueId())==1?4:2))+"): "+String.join(", ",homes)+". Use /home <name>.");
+            case "homes" -> message(player,"Homes ("+homes.size()+"/"+(bypass(player)?"unlimited":homeLimit(player))+"): "+String.join(", ",homes)+". Use /home <name>.");
             case "spawn", "worldspawn" -> {
                 if(command.getName().equals("spawn")&&args.length>0&&(name.equals("area")||name.equals("border")))spawnArea.command(player,args);
-                else teleport(player,spawn(),false);
+                else requestTeleport(player,spawn(),false,"Spawn teleport");
             }
             case "setworldspawn" -> {
                 if (!admin(player)) { message(player,"Only administrators can set world spawn."); return true; }
@@ -162,7 +183,10 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
                 message(player,"World spawn saved here. Use /spawn area to select the protected no-PvP cuboid.");
             }
             case "dimensions" -> openDimensions(player);
-            case "rtp" -> rtp.start(player);
+            case "rtp" -> {
+                if(!player.getWorld().getName().equals("world_terralith")||player.getWorld().getEnvironment()!=World.Environment.NORMAL)message(player,"Use /rtp in the Terralith Overworld only.");
+                else warmups.start(player,"Random teleport",r->rtp.start(player,r::active,r::finish));
+            }
             default -> { return false; }
         }
         return true;
@@ -175,18 +199,29 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
                 && feet.getType()!=Material.FIRE && floor.getType().isSolid();
     }
     private void teleport(Player player, Location target, boolean checkSafety) {
-        if (!allowed(player,target.getWorld())) { message(player,"That dimension is currently closed."); return; }
-        if (!bypass(player) && !target.getWorld().getWorldBorder().isInside(target)) { message(player,"That destination is outside the world border."); return; }
-        if (!teleporting.add(player.getUniqueId())) return;
-        // Chunk load happens asynchronously; eligibility is checked again before movement.
-        target.getWorld().getChunkAtAsync(target).whenComplete((chunk,error) -> Bukkit.getScheduler().runTask(plugin, () -> {
-            teleporting.remove(player.getUniqueId());
-            if (!player.isOnline() || player.isDead() || error != null) return;
-            if (!allowed(player,target.getWorld()) || (allowed(player,player.getWorld()) && inCombat(player))) { message(player,"Teleport cancelled: combat or dimension access changed."); return; }
-            if (checkSafety && !safe(target)) { message(player,"That home is obstructed or unsafe. Clear the destination first."); return; }
-            if (!allowed(player,player.getWorld())) player.leaveVehicle();
-            player.teleport(target,PlayerTeleportEvent.TeleportCause.PLUGIN);
-        }));
+        warmups.cancel(player,null);
+        teleport(player,target,checkSafety,()->!closed,()->{});
+    }
+    private void teleport(Player player,Location target,boolean checkSafety,java.util.function.BooleanSupplier valid,Runnable done) {
+        if (!allowed(player,target.getWorld())) { message(player,"That dimension is currently closed."); done.run();return; }
+        if (!bypass(player) && !target.getWorld().getWorldBorder().isInside(target)) { message(player,"That destination is outside the world border.");done.run(); return; }
+        Object ticket=new Object();
+        teleporting.put(player.getUniqueId(),ticket);
+        target.getWorld().getChunkAtAsync(target).whenComplete((chunk,error) -> {
+            if(closed)return;
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if(!teleporting.remove(player.getUniqueId(),ticket)){done.run();return;}
+                try {
+                    if(!valid.getAsBoolean()||!player.isOnline()||player.isDead())return;
+                    if(error!=null){message(player,"The destination could not be loaded. Please try again.");return;}
+                    if (!allowed(player,target.getWorld()) || (allowed(player,player.getWorld()) && inCombat(player))) { message(player,"Teleport cancelled: combat or dimension access changed."); return; }
+                    if(!bypass(player)&&!target.getWorld().getWorldBorder().isInside(target)){message(player,"That destination is outside the world border.");return;}
+                    if (checkSafety && !safe(target)) { message(player,"That home is obstructed or unsafe. Clear the destination first."); return; }
+                    if (!allowed(player,player.getWorld())) player.leaveVehicle();
+                    player.teleport(target,PlayerTeleportEvent.TeleportCause.PLUGIN);
+                } finally {done.run();}
+            });
+        });
     }
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void portal(PlayerTeleportEvent event) {
@@ -198,6 +233,12 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
     public void respawn(PlayerRespawnEvent event) {
         // Valid beds and anchors keep vanilla priority. Disabled dimensions cannot be respawned into.
         if (!allowed(event.getPlayer(),event.getRespawnLocation().getWorld()) || (!event.isBedSpawn() && !event.isAnchorSpawn())) event.setRespawnLocation(spawn());
+    }
+    @EventHandler(priority=EventPriority.HIGHEST)
+    public void firstSpawn(org.spigotmc.event.player.PlayerSpawnLocationEvent event) {
+        if(!event.getPlayer().hasPlayedBefore()) {
+            Location location=spawn();location.setPitch(0);event.setSpawnLocation(location);
+        }
     }
     @EventHandler public void joined(PlayerJoinEvent event) {
         Player player=event.getPlayer();
@@ -261,6 +302,7 @@ public final class SurvivalModule implements Listener, CommandExecutor, AutoClos
         if(event.getView().getTopInventory().getHolder() instanceof DimensionMenu)event.setCancelled(true);
     }
     @Override public void close() {
+        closed=true; warmups.close();
         if(task!=null)task.cancel();
         rtp.close(); spawnArea.close(); sidebar.close(); HandlerList.unregisterAll(this); HandlerList.unregisterAll(protection); HandlerList.unregisterAll(spawnArea);
     }

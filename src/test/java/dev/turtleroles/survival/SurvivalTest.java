@@ -6,6 +6,7 @@ import dev.turtleroles.service.RoleService;
 import dev.turtleroles.combat.ConquestCombat;
 import org.bukkit.*;
 import org.bukkit.command.Command;
+import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.junit.jupiter.api.*;
@@ -29,6 +30,46 @@ class SurvivalTest {
     }
     @AfterEach void close(){MockBukkit.unmock();}
     void command(String name,String...args){Command cmd=mock(Command.class);when(cmd.getName()).thenReturn(name);module.onCommand(player,cmd,name,args);}
+    @Test void newPlayersUseExactSpawnWithLevelViewAndReturningPlayersKeepLocation(){
+        Location spawn=new Location(player.getWorld(),125.25,80,201.75,73,85);module.data.set("spawn",spawn);
+        Player newcomer=mock(Player.class);
+        var event=new org.spigotmc.event.player.PlayerSpawnLocationEvent(newcomer,player.getLocation());
+        module.firstSpawn(event);assertEquals(125.25,event.getSpawnLocation().getX());assertEquals(73,event.getSpawnLocation().getYaw());assertEquals(0,event.getSpawnLocation().getPitch());
+        assertEquals(85,module.data.getLocation("spawn").getPitch());
+        when(newcomer.hasPlayedBefore()).thenReturn(true);Location saved=player.getLocation();
+        event=new org.spigotmc.event.player.PlayerSpawnLocationEvent(newcomer,saved);module.firstSpawn(event);assertEquals(saved,event.getSpawnLocation());
+    }
+    @Test void liveRankChangesAndExtraBoosterAdjustHomeCommandsWithoutDeletingHomes(){
+        command("sethome","one");command("sethome","two");command("sethome","three");
+        String path="homes."+player.getUniqueId();assertEquals(2,module.data.getConfigurationSection(path).getKeys(false).size());
+        when(roles.effectiveRoleOf(player.getUniqueId())).thenReturn(Role.IRON);
+        for(int i=0;i<8;i++)command("sethome","iron"+i);
+        assertEquals(6,module.data.getConfigurationSection(path).getKeys(false).size());
+        when(roles.boosterTier(player.getUniqueId())).thenReturn(2);command("sethome","extra");
+        assertEquals(7,module.data.getConfigurationSection(path).getKeys(false).size());
+        when(roles.effectiveRoleOf(player.getUniqueId())).thenReturn(Role.MEMBER);when(roles.boosterTier(player.getUniqueId())).thenReturn(0);
+        command("sethome","blocked");assertEquals(7,module.data.getConfigurationSection(path).getKeys(false).size());
+        assertNull(module.data.getLocation(path+".blocked"));command("sethome","one");assertNotNull(module.data.getLocation(path+".one"));
+    }
+    @Test void teleportRankBenefitsMatchAfkAndStaffBypass(){
+        Role[] ranks={Role.MEMBER,Role.COAL,Role.IRON,Role.REDSTONE,Role.DIAMOND,Role.NETHERITE,Role.BOOSTER,Role.BOOSTER_X2};
+        long[] waits={30000,25000,20000,15000,10000,5000,20000,10000};
+        for(int i=0;i<ranks.length;i++)assertEquals(waits[i],SurvivalModule.teleportWait(ranks[i],0));
+        assertEquals(10000,SurvivalModule.teleportWait(Role.IRON,2));assertEquals(5000,SurvivalModule.teleportWait(Role.NETHERITE,2));
+        assertEquals(0,SurvivalModule.teleportWait(Role.ADMIN,0));
+    }
+    @Test void allThreeCommandsUseRankWaitAndShareOnePendingTeleport(){
+        command("sethome","test");while(player.nextMessage()!=null){}
+        command("home","test");assertTrue(player.nextMessage().contains("30 seconds"));
+        command("spawn");assertTrue(player.nextMessage().contains("already pending"));
+        command("rtp");assertTrue(player.nextMessage().contains("already pending"));
+        module.close();module=new SurvivalModule(plugin);
+        when(roles.effectiveRoleOf(player.getUniqueId())).thenReturn(Role.COAL);
+        command("spawn");assertTrue(player.nextMessage().contains("25 seconds"));
+        module.close();module=new SurvivalModule(plugin);
+        when(roles.boosterTier(player.getUniqueId())).thenReturn(2);
+        command("rtp");assertTrue(player.nextMessage().contains("10 seconds"));
+    }
     @Test void ranksReceiveFiveSixAndTenWithoutMediaStaff(){
         assertEquals(2,SurvivalModule.homeLimit(Role.MEMBER));assertEquals(6,SurvivalModule.homeLimit(Role.MEDIA));
         assertEquals(6,SurvivalModule.homeLimit(Role.HELPER));assertEquals(10,SurvivalModule.homeLimit(Role.ADMIN));
