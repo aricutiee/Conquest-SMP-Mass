@@ -67,7 +67,7 @@ class JuggernautCompetitionTest {
         server.getScheduler().performTicks(5);
         var file=new File(plugin.getDataFolder(),"juggernaut-maces.yml");var state=YamlConfiguration.loadConfiguration(file);
         assertEquals(1_180_000,state.getLong("glow."+a.getUniqueId()));assertEquals(1_180_000,state.getLong("glow."+b.getUniqueId()));
-        assertNotNull(a.getPotionEffect(PotionEffectType.GLOWING));assertNotNull(b.getPotionEffect(PotionEffectType.GLOWING));
+        assertNull(a.getPotionEffect(PotionEffectType.GLOWING));assertNotNull(b.getPotionEffect(PotionEffectType.GLOWING));
         maces.close();maces=null;rewards();now.set(1_180_001);server.getScheduler().performTicks(20);
         assertNull(b.getPotionEffect(PotionEffectType.GLOWING));assertTrue(maces.earned(prize));
     }

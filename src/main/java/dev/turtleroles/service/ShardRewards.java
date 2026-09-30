@@ -13,10 +13,16 @@ import org.bukkit.scheduler.BukkitTask;
 import java.nio.file.Path;
 import java.util.*;
 
-public final class ShardRewards implements Listener,CommandExecutor,AutoCloseable {
+public final class ShardRewards implements Listener,CommandExecutor,TabCompleter,AutoCloseable {
  private final TurtleRolesPlugin plugin;private final Path file;private YamlConfiguration data;
  private final Set<UUID> selecting=new HashSet<>();private final Map<UUID,Location> first=new HashMap<>();
  static long interval(int tier){return tier>=2?10_000:tier==1?20_000:30_000;}
+ public static long interval(Role role,int tier){
+  long base=role==Role.COAL?25_000:role==Role.IRON?20_000:role==Role.REDSTONE?15_000:role==Role.DIAMOND?10_000:role==Role.NETHERITE?5_000:30_000;
+  return Math.min(base,interval(tier));
+ }
+ private long interval(Player player){return interval(plugin.roleService().roleOf(player.getUniqueId()),plugin.roleService().boosterTier(player.getUniqueId()));}
+ static long reschedule(long now,long next,long previous,long rate){return now+Math.max(0,rate-Math.max(0,previous-(next-now)));}
  private static final net.kyori.adventure.text.format.TextColor PURPLE=net.kyori.adventure.text.format.TextColor.color(0xB477FF);
  private static final class Session {
   final long started;long next,earned,interval;final net.kyori.adventure.bossbar.BossBar bar;
@@ -25,12 +31,12 @@ public final class ShardRewards implements Listener,CommandExecutor,AutoCloseabl
  private final Map<UUID,Session> sessions=new HashMap<>();private BukkitTask task;private final java.util.function.LongSupplier clock;
  public ShardRewards(TurtleRolesPlugin p){this(p,()->System.nanoTime()/1_000_000);}
  ShardRewards(TurtleRolesPlugin p,java.util.function.LongSupplier clock){this.clock=clock;plugin=p;file=p.getDataFolder().toPath().resolve("afk-zone.yml");data=YamlConfiguration.loadConfiguration(file.toFile());}
- public void start(){Bukkit.getPluginManager().registerEvents(this,plugin);plugin.getCommand("afk").setExecutor(this);plugin.getCommand("shards").setExecutor(this);task=Bukkit.getScheduler().runTaskTimer(plugin,this::tick,20,20);}
+ public void start(){Bukkit.getPluginManager().registerEvents(this,plugin);plugin.getCommand("afk").setExecutor(this);plugin.getCommand("shards").setExecutor(this);plugin.getCommand("shards").setTabCompleter(this);task=Bukkit.getScheduler().runTaskTimer(plugin,this::tick,20,20);}
  static boolean admin(TurtleRolesPlugin p,CommandSender s){return !(s instanceof Player player)||player.isOp()||s.hasPermission("conquest.npc.admin")||p.roleService().roleOf(player.getUniqueId()).weight()>=Role.ADMIN.weight();}
  public void cancelSelection(UUID id){selecting.remove(id);first.remove(id);}
  public boolean inside(Location l){return data.getBoolean("enabled")&&l.getWorld()!=null&&l.getWorld().getUID().toString().equals(data.getString("world"))&&l.getX()>=data.getDouble("min-x")&&l.getX()<data.getDouble("max-x")+1&&l.getY()>=data.getDouble("min-y")&&l.getY()<data.getDouble("max-y")+1&&l.getZ()>=data.getDouble("min-z")&&l.getZ()<data.getDouble("max-z")+1;}
  private boolean eligible(Player p){return !p.isDead()&&p.getGameMode()!=GameMode.SPECTATOR&&ClientCompatibility.authenticated(p)&&inside(p.getLocation());}
- private Session enter(Player p,long now){Session session=sessions.get(p.getUniqueId());if(session==null){session=new Session(now,interval(plugin.roleService().boosterTier(p.getUniqueId())));sessions.put(p.getUniqueId(),session);p.showBossBar(session.bar);}return session;}
+ private Session enter(Player p,long now){Session session=sessions.get(p.getUniqueId());if(session==null){session=new Session(now,interval(p));sessions.put(p.getUniqueId(),session);p.showBossBar(session.bar);}return session;}
  private void leave(Player p){Session session=sessions.remove(p.getUniqueId());if(session!=null){p.hideBossBar(session.bar);p.sendActionBar(net.kyori.adventure.text.Component.empty());}}
  private void clearSessions(){for(Player p:Bukkit.getOnlinePlayers())leave(p);sessions.clear();}
  static String duration(long seconds){if(seconds<60)return seconds+"s";if(seconds<3600)return seconds/60+"m "+seconds%60+"s";if(seconds<86400)return seconds/3600+"h "+seconds%3600/60+"m";return seconds/86400+"d "+seconds%86400/3600+"h";}
@@ -38,7 +44,7 @@ public final class ShardRewards implements Listener,CommandExecutor,AutoCloseabl
  long earned(UUID id){Session s=sessions.get(id);return s==null?0:s.earned;}
  boolean active(UUID id){return sessions.containsKey(id);}
  void tick(){long now=clock.getAsLong();Map<UUID,Long> awards=new HashMap<>();
-  for(Player p:Bukkit.getOnlinePlayers()){if(!eligible(p)){leave(p);continue;}Session session=enter(p,now);long rate=interval(plugin.roleService().boosterTier(p.getUniqueId()));if(rate!=session.interval){session.next=now+rate;session.interval=rate;}if(now>=session.next){awards.put(p.getUniqueId(),1L);session.next=now+session.interval;}}
+  for(Player p:Bukkit.getOnlinePlayers()){if(!eligible(p)){leave(p);continue;}Session session=enter(p,now);long rate=interval(p);if(rate!=session.interval){session.next=reschedule(now,session.next,session.interval,rate);session.interval=rate;}if(now>=session.next){awards.put(p.getUniqueId(),1L);session.next=now+session.interval;}}
   if(!awards.isEmpty())try{plugin.races().store().creditBatch(awards);awards.keySet().forEach(id->sessions.get(id).earned++);}catch(Exception e){plugin.getLogger().warning("Could not save AFK shard awards: "+e.getMessage());}
   for(Player p:Bukkit.getOnlinePlayers()){Session session=sessions.get(p.getUniqueId());if(session!=null)display(p,session,now);}
  }
@@ -55,12 +61,22 @@ public final class ShardRewards implements Listener,CommandExecutor,AutoCloseabl
  }
  @Override public boolean onCommand(CommandSender s,Command c,String label,String[] a){
   if(c.getName().equals("shards")){if(a.length==0){if(s instanceof Player p)p.sendMessage("Shards: "+plugin.races().state(p).shards);return true;}if(!admin(plugin,s)){s.sendMessage("Only administrators can grant shards.");return true;}
-   if(a.length==3&&a[0].equalsIgnoreCase("give")){Player online=Bukkit.getPlayerExact(a[1]);UUID id=online==null?plugin.races().store().lookup(a[1]):online.getUniqueId();try{long amount=Long.parseLong(a[2]);if(id==null||amount<1||!plugin.races().store().addShards(id,amount)){s.sendMessage("Use a known player and a positive shard amount.");return true;}s.sendMessage("Granted "+amount+" shards to "+a[1]+".");}catch(Exception ex){s.sendMessage("Could not grant shards. Check the amount and server storage.");}return true;}s.sendMessage("/shards or /shards give <player> <amount>");return true;
+   if((a.length==2&&a[0].equalsIgnoreCase("giveall"))||(a.length==3&&a[0].equalsIgnoreCase("give")&&a[1].equalsIgnoreCase("all"))){
+    try{long amount=Long.parseLong(a[a.length-1]);if(amount<1)throw new IllegalArgumentException();Map<UUID,Long> awards=new HashMap<>();for(Player p:Bukkit.getOnlinePlayers())if(!p.hasMetadata("NPC")&&ClientCompatibility.authenticated(p))awards.put(p.getUniqueId(),amount);plugin.races().store().creditBatch(awards);s.sendMessage("Granted "+amount+" shards to "+awards.size()+" online players.");for(UUID id:awards.keySet()){Player p=Bukkit.getPlayer(id);if(p!=null){p.sendMessage("You received "+amount+" shards from a giveaway!");dev.turtleroles.analytics.ConquestAnalytics.action(p,"REWARD","shard_giveaway");}}}catch(Exception ex){s.sendMessage("Could not grant shards. Use a positive whole amount and check storage.");}return true;
+   }
+   if(a.length==3&&a[0].equalsIgnoreCase("set")){Player p=Bukkit.getPlayerExact(a[1]);UUID id=p==null?plugin.races().store().lookup(a[1]):p.getUniqueId();try{long amount=Long.parseLong(a[2]);if(id==null||!plugin.races().store().setShards(id,amount)){s.sendMessage("Use a known player and a nonnegative balance.");return true;}s.sendMessage("Set "+a[1]+" to "+amount+" shards.");}catch(Exception ex){s.sendMessage("Could not set shards. Check amount and storage.");}return true;}
+   if(a.length==3&&a[0].equalsIgnoreCase("give")){Player online=Bukkit.getPlayerExact(a[1]);UUID id=online==null?plugin.races().store().lookup(a[1]):online.getUniqueId();try{long amount=Long.parseLong(a[2]);if(id==null||amount<1||!plugin.races().store().addShards(id,amount)){s.sendMessage("Use a known player and a positive shard amount.");return true;}s.sendMessage("Granted "+amount+" shards to "+a[1]+".");}catch(Exception ex){s.sendMessage("Could not grant shards. Check the amount and server storage.");}return true;}s.sendMessage("/shards, /shards give|set <player> <amount>, /shards giveall <amount>");return true;
   }
   if(!admin(plugin,s)){s.sendMessage("Only administrators can select the AFK zone.");return true;}
   if(a.length==1&&a[0].equalsIgnoreCase("off")){boolean old=data.getBoolean("enabled");data.set("enabled",false);try{AtomicYaml.save(data,file);clearSessions();s.sendMessage("AFK rewards disabled.");}catch(Exception ex){data.set("enabled",old);s.sendMessage("Could not save.");}return true;}
   if(!(s instanceof Player p)){s.sendMessage("Select the AFK area in-game.");return true;}if(a.length==1&&a[0].equalsIgnoreCase("cancel")){selecting.remove(p.getUniqueId());first.remove(p.getUniqueId());p.sendMessage("AFK selection cancelled.");return true;}
   plugin.survival().spawnArea().cancelSelection(p.getUniqueId());selecting.add(p.getUniqueId());first.remove(p.getUniqueId());p.sendMessage("Left-click one AFK corner, then right-click the opposite corner. Height is bounded by these two blocks. /afk cancel cancels.");return true;
+ }
+ @Override public List<String> onTabComplete(CommandSender sender,Command command,String alias,String[] args){
+  if(!admin(plugin,sender)||args.length==0)return List.of();List<String> values=new ArrayList<>();
+  if(args.length==1)values.addAll(List.of("set","give","giveall"));
+  if(args.length==2&&(args[0].equalsIgnoreCase("set")||args[0].equalsIgnoreCase("give"))){Bukkit.getOnlinePlayers().forEach(p->values.add(p.getName()));if(args[0].equalsIgnoreCase("give"))values.add("all");}
+  String prefix=args[args.length-1].toLowerCase(Locale.ROOT);return values.stream().filter(v->v.toLowerCase(Locale.ROOT).startsWith(prefix)).toList();
  }
  @Override public void close(){if(task!=null)task.cancel();HandlerList.unregisterAll(this);clearSessions();selecting.clear();first.clear();}
 }

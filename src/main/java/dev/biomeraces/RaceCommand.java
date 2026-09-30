@@ -26,7 +26,7 @@ public final class RaceCommand implements CommandExecutor, TabCompleter {
             if (sender instanceof Player player) info(player); else plugin.message(sender, "player-only"); return true;
         }
         if (!List.of("set", "reset", "reload").contains(sub)) return false;
-        if (!sender.hasPermission("biomeraces.admin." + sub)) { plugin.message(sender, "no-permission"); return true; }
+        if (!admin(sender, sub)) { plugin.message(sender, "no-permission"); return true; }
         if (sub.equals("reload")) {
             if (args.length != 1) return false;
             try { plugin.reloadSettings(); plugin.message(sender, "reloaded"); }
@@ -43,6 +43,9 @@ public final class RaceCommand implements CommandExecutor, TabCompleter {
         plugin.message(sender, race == null ? "reset" : "selected", "<race>", race == null ? "" : race.label());
         if (target != null && !target.equals(sender)) plugin.message(target, race == null ? "reset" : "selected", "<race>", race == null ? "" : race.label());
         return true;
+    }
+    private static boolean admin(CommandSender sender, String action) {
+        return sender.isOp() || sender.hasPermission("biomeraces.admin." + action);
     }
     private boolean setBase(UUID uuid, Race race) {
         PlayerState state = plugin.store().get(uuid); Race old = state.base, pending = state.pendingRoll;
@@ -67,10 +70,10 @@ public final class RaceCommand implements CommandExecutor, TabCompleter {
         List<String> values = new ArrayList<>();
         if (args.length == 1) {
             values.add("info");
-            for (String sub : List.of("set", "reset", "reload")) if (sender.hasPermission("biomeraces.admin." + sub)) values.add(sub);
-        } else if (args.length == 2 && List.of("set", "reset").contains(args[0]) && sender.hasPermission("biomeraces.admin." + args[0])) {
+            for (String sub : List.of("set", "reset", "reload")) if (admin(sender, sub)) values.add(sub);
+        } else if (args.length == 2 && List.of("set", "reset").contains(args[0]) && admin(sender, args[0])) {
             Bukkit.getOnlinePlayers().forEach(player -> values.add(player.getName()));
-        } else if (args.length == 3 && args[0].equals("set") && sender.hasPermission("biomeraces.admin.set")) {
+        } else if (args.length == 3 && args[0].equals("set") && admin(sender, "set")) {
             RollSettings.BASE.forEach(race -> values.add(race.key()));
         }
         String prefix = args[args.length - 1].toLowerCase(Locale.ROOT);

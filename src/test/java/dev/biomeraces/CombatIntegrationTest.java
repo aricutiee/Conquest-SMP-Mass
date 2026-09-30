@@ -53,11 +53,24 @@ class CombatIntegrationTest {
         assertEquals(0, count()); assertEquals(0, plugin.state(player).offenseUntil);
         HandlerList.unregisterAll(combat);
     }
+    @Test void petalNaturalRegenerationOnlyBoostsFoodHealing(){
+        plugin.state(player).base=Race.PETALFOLK;
+        var food=new EntityRegainHealthEvent(player,2,EntityRegainHealthEvent.RegainReason.SATIATED);server.getPluginManager().callEvent(food);assertEquals(3,food.getAmount());
+        var other=new EntityRegainHealthEvent(player,2,EntityRegainHealthEvent.RegainReason.CUSTOM);server.getPluginManager().callEvent(other);assertEquals(2,other.getAmount());
+    }
+    @Test void bogbornBonusWorksDuringOffenseCooldown(){
+        plugin.state(player).base=Race.BOGBORN;plugin.state(player).offenseUntil=System.currentTimeMillis()+10000;
+        assertEquals(5.5,hit(5).getDamage(),1e-9);assertEquals(0,count());
+    }
+    @Test void rootPassiveWorksOnAnyTerrainDuringCooldown(){
+        plugin.state(target).base=Race.ROOTBOUND;plugin.state(target).defenseUntil=System.currentTimeMillis()+20000;
+        assertEquals(9,hit(10).getFinalDamage(),1e-6);
+    }
     @Test void thirdHitHeavyStrikeAndCooldownDoesNotBuild() {
         plugin.state(player).base = Race.DWARF;
         assertEquals(5, hit(5).getDamage()); assertEquals(1, count());
         assertEquals(5, hit(5).getDamage()); assertEquals(2, count());
-        assertEquals(6, hit(5).getDamage()); assertEquals(0, count());
+        assertEquals(6.5, hit(5).getDamage()); assertEquals(0, count());
         long expiry = plugin.state(player).offenseUntil; assertTrue(expiry > System.currentTimeMillis());
         for (int i = 0; i < 4; i++) assertEquals(5, hit(5).getDamage());
         assertEquals(0, count()); assertEquals(expiry, plugin.state(player).offenseUntil);
@@ -67,7 +80,7 @@ class CombatIntegrationTest {
         Listener cancel = new Listener() { @EventHandler(priority = EventPriority.HIGHEST) public void damage(EntityDamageEvent event) { event.setCancelled(true); } };
         server.getPluginManager().registerEvents(cancel, plugin.host());
         assertTrue(hit(5).isCancelled()); assertEquals(2, count()); assertEquals(0, plugin.state(player).offenseUntil);
-        HandlerList.unregisterAll(cancel); assertEquals(6, hit(5).getDamage()); assertEquals(0, count());
+        HandlerList.unregisterAll(cancel); assertEquals(6.5, hit(5).getDamage()); assertEquals(0, count());
     }
     @Test void ignoresWeakZeroSweepSyntheticPassiveAndPvpOff() {
         plugin.state(player).base = Race.DWARF;
@@ -95,19 +108,19 @@ class CombatIntegrationTest {
         plugin.state(player).dragon = true; player.getInventory().setItemInOffHand(new org.bukkit.inventory.ItemStack(Material.DRAGON_EGG));
         plugin.state(player).chain.commit(target.getUniqueId(), 3, System.currentTimeMillis());
         plugin.state(target).base = Race.ROOTBOUND; target.getLocation().subtract(0, .05, 0).getBlock().setType(Material.MUD);
-        assertEquals(7.2, hit(20).getFinalDamage(), 1e-6);
+        assertEquals(6.12, hit(20).getFinalDamage(), 1e-6);
         assertTrue(plugin.state(target).defenseUntil > System.currentTimeMillis());
     }
     @Test void onlyAssociatedKnockbackIsReduced() {
         plugin.state(target).base = Race.ROOTBOUND; target.getLocation().subtract(0, .05, 0).getBlock().setType(Material.MUD);
         hit(5);
         EntityPushedByEntityAttackEvent push = new EntityPushedByEntityAttackEvent(target, EntityKnockbackEvent.Cause.ENTITY_ATTACK, player, new Vector(1, .4, 0));
-        server.getPluginManager().callEvent(push); assertEquals(.4, push.getKnockback().getX(), 1e-9);
+        server.getPluginManager().callEvent(push); assertEquals(.25, push.getKnockback().getX(), 1e-9);
         PlayerMock other = server.addPlayer("Unrelated");
         EntityPushedByEntityAttackEvent unrelated = new EntityPushedByEntityAttackEvent(target, EntityKnockbackEvent.Cause.ENTITY_ATTACK, other, new Vector(1, .4, 0));
         server.getPluginManager().callEvent(unrelated); assertEquals(1, unrelated.getKnockback().getX());
     }
-    @Test void stoneLandingCapsActualProtectedDamageAtEight() {
+    @Test void stoneLandingCapsActualProtectedDamageAtTwelve() {
         plugin.state(target).base = Race.DWARF; target.getLocation().subtract(0, .05, 0).getBlock().setType(Material.STONE);
         Map<EntityDamageEvent.DamageModifier, Double> modifiers = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
         Map<EntityDamageEvent.DamageModifier, Function<? super Double, Double>> functions = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
@@ -116,7 +129,7 @@ class CombatIntegrationTest {
         functions.put(EntityDamageEvent.DamageModifier.BASE, value -> 0d);
         functions.put(EntityDamageEvent.DamageModifier.MAGIC, value -> -value * .5);
         EntityDamageEvent fall = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.FALL, modifiers, functions);
-        server.getPluginManager().callEvent(fall); assertEquals(7, fall.getFinalDamage(), 1e-6);
+        server.getPluginManager().callEvent(fall); assertEquals(3, fall.getFinalDamage(), 1e-6);
         assertTrue(plugin.state(target).defenseUntil > System.currentTimeMillis());
     }
     @Test void cancelledDefenseDoesNotSpendCooldown() {
@@ -158,7 +171,7 @@ class CombatIntegrationTest {
         modifiers.put(EntityDamageEvent.DamageModifier.BASE, 4d); modifiers.put(EntityDamageEvent.DamageModifier.ABSORPTION, -4d);
         functions.put(EntityDamageEvent.DamageModifier.BASE, value -> 0d); functions.put(EntityDamageEvent.DamageModifier.ABSORPTION, value -> -Math.min(value, 4));
         var event = new EntityDamageByEntityEvent(player, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, modifiers, functions);
-        server.getPluginManager().callEvent(event); assertEquals(3.6, CombatListener.actualDamage(event), 1e-6);
+        server.getPluginManager().callEvent(event); assertEquals(3.06, CombatListener.actualDamage(event), 1e-6);
         assertTrue(plugin.state(target).defenseUntil > System.currentTimeMillis());
     }
     @Test void stoneLandingDoesNotAlsoEraseExistingAbsorptionDamage() {
@@ -183,6 +196,6 @@ class CombatIntegrationTest {
             plugin.effects().clear(target);
         }
         plugin.state(player).base = Race.PETALFOLK; plugin.state(player).offenseUntil = 0; player.setHealth(10);
-        hit(4); hit(4); hit(4); server.getScheduler().performOneTick(); assertEquals(11, player.getHealth());
+        hit(4); hit(4); hit(4); server.getScheduler().performOneTick(); assertEquals(11.5, player.getHealth());
     }
 }

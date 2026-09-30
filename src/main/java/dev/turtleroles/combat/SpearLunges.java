@@ -49,7 +49,7 @@ public final class SpearLunges implements Listener,AutoCloseable {
         refresh(player);
     }
     void refresh(Player player){
-        if(GameplayBypass.allowed(plugin,player)){count.getScore(player.getName()).setScore(0);gate.getScore(player.getName()).setScore(player.isDead()?0:1);bars.hideAll(player);return;}
+        if(GameplayBypass.allowed(plugin,player)||(plugin instanceof dev.turtleroles.TurtleRolesPlugin conquest && conquest.isJuggernaut(player))){if(plugin instanceof dev.turtleroles.TurtleRolesPlugin c && c.isJuggernaut(player)){player.getPersistentDataContainer().remove(COUNT);player.getPersistentDataContainer().remove(UNTIL);}count.getScore(player.getName()).setScore(0);gate.getScore(player.getName()).setScore(player.isDead()?0:1);bars.hideAll(player);return;}
         String name=player.getName();long now=clock.getAsLong();
         int uses=Math.clamp(count.getScore(name).getScore(),0,limit);
         long until=player.getPersistentDataContainer().getOrDefault(UNTIL,PersistentDataType.LONG,0L);

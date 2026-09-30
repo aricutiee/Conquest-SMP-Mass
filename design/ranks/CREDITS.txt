@@ -1,0 +1,2 @@
+Minecraft item textures by Mojang. Source: https://github.com/Mojang/bedrock-samples/tree/main/resource_pack/textures/items
+Used for Minecraft in-game rank badges.

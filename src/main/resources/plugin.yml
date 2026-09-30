@@ -29,7 +29,7 @@ commands:
     usage: /afk [off|cancel]
   shards:
     description: View shards or grant shards as an administrator.
-    usage: /shards [give <player> <amount>]
+    usage: /shards [give|set <player> <amount>] or /shards giveall <amount>
   setword:
     description: Create and manage large floating small-caps labels.
     usage: /setword <color> <text>

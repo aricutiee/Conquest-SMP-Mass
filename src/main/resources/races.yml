@@ -1,7 +1,4 @@
-# Paper 1.21.11. Damage and health values are health points, not hearts.
-# Durations/cooldowns are seconds unless the key explicitly says ticks.
 roll:
-  # 100 server ticks by default: five seconds at normal 20 TPS.
   duration-seconds: 5
   frames: 24
   join-delay-ticks: 20
@@ -12,8 +9,8 @@ roll:
   reveal-sound: minecraft:entity.ender_dragon.growl
   reveal-volume: 0.4
   reveal-pitch: 1.0
-  spinning-subtitle: '<gray>Discovering your race...'
-  result-subtitle: '<gold>Your origin has awakened.'
+  spinning-subtitle: <gray>Discovering your race...
+  result-subtitle: <gold>Your origin has awakened.
   preview-subtitle: '<yellow>Preview only: your race will not change'
   preview-result-subtitle: '<yellow>Preview complete: your saved race is unchanged'
   weights:
@@ -32,99 +29,117 @@ combat:
   minimum-attack-charge: 0.9
   base-hits: 3
   base-chain-timeout-seconds: 8
-  offensive-cooldown-seconds: 12
+  offensive-cooldown-seconds: 10
   action-bar: true
 checks:
-  # Passive checks are per online player only. Hands are checked every tick.
   passive-interval-ticks: 5
   potion-lease-ticks: 600
 messages:
-  roll-busy: '<yellow>Your race roll is already pending or playing.'
-  roll-unavailable: '<yellow>You can roll after respawning.'
-  roll-save-failed: '<red>Your race could not be saved. Ask an administrator to check storage, then use /race to retry.'
-  selected: '<green>Your base race is now <race>.'
-  locked: '<yellow>Your choice is saved. An administrator can change it. Use /race info.'
-  no-permission: '<red>You do not have permission.'
-  player-only: '<red>This command is for players.'
-  player-not-found: '<red>Player not found. Use an online name, a previously seen name, or a UUID.'
-  invalid-race: '<red>Choose bogborn, rootbound, petalfolk, hollow-eyed, or dwarf.'
-  reset: '<yellow>The saved base race was reset. A new roll will begin. Cooldowns were retained.'
-  reloaded: '<green>Conquest race configuration reloaded.'
-  reload-failed: '<red>Configuration was rejected. See the server log. Previous settings remain active.'
-  returned: '<gray>The ancient power recedes. Your base race returns.'
-  none: 'Unchosen'
+  roll-busy: <yellow>Your race roll is already pending or playing.
+  roll-unavailable: <yellow>You can roll after respawning.
+  roll-save-failed: <red>Your race could not be saved. Ask an administrator to check storage, then use /race to retry.
+  selected: <green>Your base race is now <race>.
+  locked: <yellow>Your choice is saved. An administrator can change it. Use /race info.
+  no-permission: <red>You do not have permission.
+  player-only: <red>This command is for players.
+  player-not-found: <red>Player not found. Use an online name, a previously seen name, or a UUID.
+  invalid-race: <red>Choose bogborn, rootbound, petalfolk, hollow-eyed, or dwarf.
+  reset: <yellow>The saved base race was reset. A new roll will begin. Cooldowns were retained.
+  reloaded: <green>Conquest race configuration reloaded.
+  reload-failed: <red>Configuration was rejected. See the server log. Previous settings remain active.
+  returned: <gray>The ancient power recedes. Your base race returns.
+  none: Unchosen
   info-heading: '<gold>Active race: <race>'
   info-base: '<gray>Saved base race: <race>'
-  action-bar: '<gray><race> <dark_gray>| <gray>Chain <count> <dark_gray>| <gray>Offense <offense>s <dark_gray>| <gray>Defense <defense>s'
+  action-bar: <gray><race> <dark_gray>| <gray>Chain <count> <dark_gray>| <gray>Offense <offense>s <dark_gray>| <gray>Defense <defense>s
 bogborn:
   icon: LILY_PAD
   description:
-    - '<aqua>Swamp origin'
-    - '<gray>Water Breathing while your head is underwater.'
-    - '<gray>Bog Guard: 20% less melee/projectile damage in water, 25s cooldown.'
-    - '<gray>Venom Strike: every third hit poisons for 2s.'
-  defense-reduction: 0.20
-  defense-cooldown-seconds: 25
-  poison-seconds: 2
+  - '<green>Offense class: Venom Raider'
+  - <gray>Melee hits deal 10% more damage before armor.
+  - <gray>Every third charged hit poisons for 3s, 10s cooldown.
+  - '<gray>Water Breathing underwater. Water guard: 30% reduction, 20s cooldown.'
+  defense-reduction: 0.3
+  defense-cooldown-seconds: 20
+  poison-seconds: 3
   visual:
-    particles: [HAPPY_VILLAGER, BUBBLE]
+    particles:
+    - HAPPY_VILLAGER
+    - BUBBLE
     count: 4
     block: MUD
     sound: minecraft:entity.frog.ambient
     volume: 0.25
     pitch: 0.8
+  damage-multiplier: 1.1
 rootbound:
   icon: MANGROVE_ROOTS
   description:
-    - '<green>Mangrove swamp origin'
-    - '<gray>Root Runner: Speed I on mud or mangrove roots.'
-    - '<gray>Hold Fast: 10% less damage and 60% less hit knockback, 25s cooldown.'
-    - '<gray>Root Snare: every third hit slows for 1.5s.'
-  passive-blocks: [MUD, MANGROVE_ROOTS, MUDDY_MANGROVE_ROOTS]
-  defense-blocks: [MUD, DIRT, COARSE_DIRT, ROOTED_DIRT, MANGROVE_ROOTS, MUDDY_MANGROVE_ROOTS]
-  defense-reduction: 0.10
-  knockback-reduction: 0.60
-  defense-cooldown-seconds: 25
-  slowness-seconds: 1.5
+  - '<green>Defense class: Root Guardian'
+  - <gray>Always takes 10% less melee/projectile damage.
+  - <gray>Guard adds 15% reduction and 75% less knockback, 20s cooldown.
+  - <gray>Every third charged hit slows for 2.25s, 10s cooldown.
+  passive-blocks:
+  - MUD
+  - MANGROVE_ROOTS
+  - MUDDY_MANGROVE_ROOTS
+  defense-blocks:
+  - MUD
+  - DIRT
+  - COARSE_DIRT
+  - ROOTED_DIRT
+  - MANGROVE_ROOTS
+  - MUDDY_MANGROVE_ROOTS
+  defense-reduction: 0.15
+  knockback-reduction: 0.75
+  defense-cooldown-seconds: 20
+  slowness-seconds: 2.25
   visual:
-    particles: [BLOCK]
+    particles:
+    - BLOCK
     count: 8
     block: MANGROVE_ROOTS
     sound: minecraft:block.muddy_mangrove_roots.step
     volume: 0.35
     pitch: 0.8
+  passive-reduction: 0.1
 petalfolk:
   icon: CHERRY_SAPLING
   description:
-    - '<light_purple>Cherry grove origin'
-    - '<gray>Lightfoot: 20% less fall damage.'
-    - '<gray>Petal Shield: Absorption I for 4s after surviving a hit, 30s cooldown.'
-    - '<gray>Bloom Strike: every third hit restores half a heart.'
-  fall-reduction: 0.20
-  absorption-seconds: 4
-  defense-cooldown-seconds: 30
-  healing: 1
+  - '<light_purple>Healing class: Bloomkeeper'
+  - <gray>Natural food regeneration restores 50% more health.
+  - <gray>Every third charged hit heals 0.75 hearts, 10s cooldown.
+  - <gray>Absorption I for 6s after surviving a hit, 24s cooldown.
+  - <gray>30% less fall damage.
+  fall-reduction: 0.3
+  absorption-seconds: 6
+  defense-cooldown-seconds: 24
+  healing: 1.5
   visual:
-    particles: [CHERRY_LEAVES]
+    particles:
+    - CHERRY_LEAVES
     count: 5
     block: CHERRY_LEAVES
     sound: minecraft:block.amethyst_block.chime
     volume: 0.25
     pitch: 1.3
+  natural-healing-multiplier: 1.5
 hollow-eyed:
   icon: PALE_OAK_SAPLING
   description:
-    - '<gray>Pale Garden origin'
-    - '<gray>Dark Sight: Night Vision in effective light 7 or lower.'
-    - '<gray>Stillness: 20% less melee/projectile damage in low light, 25s cooldown.'
-    - '<gray>Dread Touch: every third hit applies Darkness for 1s.'
+  - '<light_purple>Movement class: Shadow Runner'
+  - <gray>Permanent Speed I; Night Vision in low light.
+  - <gray>Every third charged hit applies Darkness for 1.5s, 10s cooldown.
+  - '<gray>Low-light guard: 30% less melee/projectile damage, 20s cooldown.'
   light-threshold: 7
   light-debounce-ticks: 10
-  defense-reduction: 0.20
-  defense-cooldown-seconds: 25
-  darkness-seconds: 1
+  defense-reduction: 0.3
+  defense-cooldown-seconds: 20
+  darkness-seconds: 1.5
   visual:
-    particles: [BLOCK, SMOKE]
+    particles:
+    - BLOCK
+    - SMOKE
     count: 4
     block: PALE_OAK_WOOD
     sound: minecraft:entity.creaking.ambient
@@ -133,17 +148,20 @@ hollow-eyed:
 dwarf:
   icon: POINTED_DRIPSTONE
   description:
-    - '<gold>Dripstone cave origin'
-    - '<gray>Deep Miner: Haste I below Y=40.'
-    - '<gray>Stone Landing: prevent up to 4 hearts of fall damage on stone/deepslate.'
-    - '<gray>Heavy Strike: every third hit adds half a heart before armor.'
+  - '<gold>Passive utility class: Deepforged'
+  - <gray>Permanent Haste I, above and below ground.
+  - <gray>Stone/deepslate landings prevent up to 6 hearts, 24s cooldown.
+  - <gray>Every third charged hit adds 0.75 hearts before armor, 10s cooldown.
   underground-height: 40
-  landing-blocks: [STONE, DEEPSLATE]
-  fall-prevention: 8
-  defense-cooldown-seconds: 30
-  bonus-damage: 1
+  landing-blocks:
+  - STONE
+  - DEEPSLATE
+  fall-prevention: 12
+  defense-cooldown-seconds: 24
+  bonus-damage: 1.5
   visual:
-    particles: [BLOCK]
+    particles:
+    - BLOCK
     count: 7
     block: DRIPSTONE_BLOCK
     sound: minecraft:block.stone.hit
@@ -151,10 +169,11 @@ dwarf:
     pitch: 0.7
 dragonborn:
   description:
-    - '<light_purple>Temporary Dragon Egg transformation'
-    - '<gray>Four extra maximum hearts, Strength I, Speed I, Fire Resistance.'
-    - '<gray>Rising Fury: normal, normal, normal +2, 8, 10, 12, then +2 per hit.'
-    - '<gray>Changing targets or a 4s gap resets the chain.'
+  - <light_purple>Temporary Dragon Egg transformation
+  - <gray>Activates with a Dragon Egg anywhere in your player inventory.
+  - <gray>Four extra maximum hearts, Strength I, Speed I, Fire Resistance.
+  - '<gray>Rising Fury: normal, normal, normal +2, 8, 10, 12, then +2 per hit.'
+  - <gray>Changing targets or a 4s gap resets the chain.
   extra-max-health: 8
   chain-timeout-seconds: 4
   third-hit-bonus: 2
@@ -162,16 +181,18 @@ dragonborn:
   damage-per-hit-number: 2
   message-interval-ticks: 16
   transformation-messages:
-    - '<light_purple>You feel yourself changing.'
-    - '<light_purple>.'
-    - '<light_purple>..'
-    - '<light_purple>...'
-    - '<light_purple>Something ancient wakes inside you.'
-    - '<light_purple>You have become Dragonborn.'
+  - <light_purple>You feel yourself changing.
+  - <light_purple>.
+  - <light_purple>..
+  - <light_purple>...
+  - <light_purple>Something ancient wakes inside you.
+  - <light_purple>You have become Dragonborn.
   visual:
-    particles: [PORTAL]
+    particles:
+    - PORTAL
     count: 12
     block: OBSIDIAN
     sound: minecraft:entity.ender_dragon.ambient
     volume: 0.15
     pitch: 0.8
+class-balance-version: 1

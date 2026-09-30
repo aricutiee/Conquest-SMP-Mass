@@ -39,6 +39,8 @@ final class JuggernautMaces implements Listener,AutoCloseable {
     private final BukkitTask task;
     private final Map<String,MaceRise> rises=new HashMap<>();
     private final Map<UUID,MaceRise> previews=new HashMap<>();
+    private final Set<UUID> glowLeases=new HashSet<>();
+    private boolean updatingGlow;
     private boolean dirty;
     private int ticks;
     JuggernautMaces(JavaPlugin plugin,ShockMace factory,Predicate<ItemStack> activeKit) {
@@ -164,13 +166,26 @@ final class JuggernautMaces implements Listener,AutoCloseable {
         expose(player,data.getLong(path+".expires"));
     }
     private void glow(Player player) {
-        long left=remaining(data.getLong("glow."+player.getUniqueId()),clock.getAsLong());
-        if(left==0||player.isDead())return;
+        long deadline=0;
+        for(ItemStack item:player.getInventory().getContents())if(earned(item))deadline=Math.max(deadline,data.getLong("maces."+token(item)+".expires"));
+        if(earned(player.getItemOnCursor()))deadline=Math.max(deadline,data.getLong("maces."+token(player.getItemOnCursor())+".expires"));
+        long left=remaining(deadline,clock.getAsLong());
+        if(left==0||player.isDead()){
+            if(glowLeases.remove(player.getUniqueId())){updatingGlow=true;try{player.removePotionEffect(PotionEffectType.GLOWING);}finally{updatingGlow=false;}}
+            return;
+        }
         PotionEffect external=player.getPotionEffect(PotionEffectType.GLOWING);
         int duration=(int)Math.min(10,(left+49)/50);
         // Short leases expire naturally. Never clear or shorten another plugin's glow.
-        if(external==null||(!external.isInfinite()&&external.getDuration()<duration))
-            player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING,duration,0,false,false,false));
+        if(external==null||glowLeases.contains(player.getUniqueId())) {
+            updatingGlow=true;
+            try{if(player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING,duration,0,false,false,false)))glowLeases.add(player.getUniqueId());}
+            finally{updatingGlow=false;}
+        }
+    }
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
+    public void externalGlow(EntityPotionEffectEvent event){
+        if(!updatingGlow&&event.getModifiedType()==PotionEffectType.GLOWING)glowLeases.remove(event.getEntity().getUniqueId());
     }
     private void tick() {
         Set<String> carried=new HashSet<>();
@@ -261,7 +276,7 @@ final class JuggernautMaces implements Listener,AutoCloseable {
         }
     }
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true) public void drop(PlayerDropItemEvent event){
-        if(earned(event.getItemDrop().getItemStack())){holder(event.getPlayer(),event.getItemDrop().getItemStack());event.getItemDrop().setGlowing(true);}
+        if(earned(event.getItemDrop().getItemStack())){event.getItemDrop().setGlowing(true);Bukkit.getScheduler().runTask(plugin,()->glow(event.getPlayer()));}
     }
     @EventHandler(priority=EventPriority.HIGHEST) public void craft(PrepareItemCraftEvent event){if(GameplayBypass.allowed(plugin,event.getView().getPlayer()))return;if(event.getInventory().getResult()!=null&&event.getInventory().getResult().getType()==Material.MACE)event.getInventory().setResult(null);}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true) public void crafted(CraftItemEvent event){if(GameplayBypass.allowed(plugin,event.getWhoClicked()))return;if(event.getRecipe().getResult().getType()==Material.MACE)event.setCancelled(true);}

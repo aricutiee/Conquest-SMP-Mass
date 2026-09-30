@@ -54,8 +54,12 @@ public final class CombatListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void offensiveDamage(EntityDamageEvent event) {
-        Attack attack = attacks.get(event); if (attack == null || actualDamage(event) <= 0) return;
         Settings settings = plugin.settings();
+        if(event instanceof EntityDamageByEntityEvent hit && hit.getDamager() instanceof Player player
+                && event.getCause()==EntityDamageEvent.DamageCause.ENTITY_ATTACK
+                && plugin.state(player).active()==Race.BOGBORN && actualDamage(event)>0)
+            event.setDamage(event.getDamage()*settings.number("bogborn.damage-multiplier"));
+        Attack attack = attacks.get(event); if (attack == null || actualDamage(event) <= 0) return;
         if (attack.race == Race.DRAGONBORN) {
             event.setDamage(CombatChain.dragonDamage(event.getDamage(), attack.hit, settings.number("dragonborn.third-hit-bonus"),
                 settings.integer("dragonborn.replacement-start-hit"), settings.number("dragonborn.damage-per-hit-number")));
@@ -73,6 +77,8 @@ public final class CombatListener implements Listener {
         if (event.getCause() == EntityDamageEvent.DamageCause.FALL && race == Race.PETALFOLK) {
             reduceActual(event, actualDamage(event) * settings.number("petalfolk.fall-reduction")); return;
         }
+        if (race == Race.ROOTBOUND && incoming(event))
+            reduceActual(event, actualDamage(event) * settings.number("rootbound.passive-reduction"));
         if (System.currentTimeMillis() < state.defenseUntil) return;
         double before = event.getFinalDamage();
         if (event.getCause() == EntityDamageEvent.DamageCause.FALL && race == Race.DWARF
@@ -84,7 +90,7 @@ public final class CombatListener implements Listener {
         if (!incoming(event)) return;
         boolean defend = switch (race) {
             case BOGBORN -> EnvironmentRules.bodyInWater(player);
-            case ROOTBOUND -> settings.onBlock("rootbound.defense-blocks", EnvironmentRules.standingOn(player));
+            case ROOTBOUND -> true;
             case HOLLOW_EYED -> plugin.runtime().lowLight(player);
             default -> false;
         };
@@ -126,6 +132,12 @@ public final class CombatListener implements Listener {
                         && plugin.state(attack.attacker).active() == attack.race) proc(attack);
             });
         }
+    }
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void naturalHealing(EntityRegainHealthEvent event) {
+        if (event.getEntity() instanceof Player player && plugin.state(player).active() == Race.PETALFOLK
+                && event.getRegainReason() == EntityRegainHealthEvent.RegainReason.SATIATED)
+            event.setAmount(event.getAmount() * plugin.settings().number("petalfolk.natural-healing-multiplier"));
     }
     private void petalAfterHit(EntityDamageEvent event, Defense defense) {
         Player player = defense.player; PlayerState state = plugin.state(player);

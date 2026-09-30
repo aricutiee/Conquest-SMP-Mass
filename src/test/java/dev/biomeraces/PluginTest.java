@@ -28,14 +28,16 @@ class PluginTest {
         assertEquals(Race.HOLLOW_EYED, copy.base); assertEquals(state.offenseUntil, copy.offenseUntil); assertEquals(state.defenseUntil, copy.defenseUntil);
         assertFalse(copy.dragon); assertEquals(player.getUniqueId(), reloaded.lookup("Miner"));
     }
-    @Test void dragonOnlyUsesHandsAndCancelsPending() {
+    @Test void dragonUsesStorageAndLosesPowerWhenEggLeavesInventory() {
         plugin.state(player).base = Race.DWARF;
         player.getInventory().setItem(12, new ItemStack(Material.DRAGON_EGG)); server.getScheduler().performTicks(90);
-        assertFalse(plugin.state(player).dragon); assertEquals(-1, plugin.state(player).transformationStep);
-        player.getInventory().setItemInOffHand(new ItemStack(Material.DRAGON_EGG)); server.getScheduler().performTicks(25);
-        assertFalse(plugin.state(player).dragon); assertTrue(plugin.state(player).transformationStep > 0);
-        player.getInventory().setItemInOffHand(new ItemStack(Material.AIR)); server.getScheduler().performTicks(90);
+        assertTrue(plugin.state(player).dragon);
+        player.getInventory().setItem(12, new ItemStack(Material.AIR)); server.getScheduler().performOneTick();
         assertFalse(plugin.state(player).dragon); assertEquals(Race.DWARF, plugin.state(player).active());
+        player.getInventory().setItem(18, new ItemStack(Material.DRAGON_EGG)); server.getScheduler().performTicks(25);
+        assertTrue(plugin.state(player).transformationStep > 0);
+        player.getInventory().clear(); server.getScheduler().performTicks(90);
+        assertFalse(plugin.state(player).dragon);
     }
     @Test void transformationDoesNotHealAndRestoresOtherHealthModifier() {
         plugin.state(player).base = Race.PETALFOLK;
@@ -87,7 +89,7 @@ class PluginTest {
     @Test void environmentalPassivesAndLightDebounce() {
         plugin.state(player).base = Race.ROOTBOUND;
         player.getLocation().subtract(0, .05, 0).getBlock().setType(Material.MUD);
-        plugin.runtime().updatePassives(player); assertTrue(player.hasPotionEffect(PotionEffectType.SPEED));
+        plugin.runtime().updatePassives(player); assertFalse(player.hasPotionEffect(PotionEffectType.SPEED));
         player.getLocation().subtract(0, .05, 0).getBlock().setType(Material.STONE);
         plugin.runtime().updatePassives(player); assertFalse(player.hasPotionEffect(PotionEffectType.SPEED));
         plugin.state(player).base = Race.HOLLOW_EYED;

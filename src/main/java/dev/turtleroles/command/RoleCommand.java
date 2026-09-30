@@ -92,6 +92,9 @@ public final class RoleCommand implements CommandExecutor, TabCompleter {
     private void info(CommandSender sender, String targetName) throws SQLException {
         PlayerRecord target = players.resolveKnown(targetName).orElseThrow(() -> new IllegalArgumentException("Unknown known player: " + targetName));
         sender.sendMessage(target.lastName() + " is " + roleDescription(target) + " (revision " + target.revision() + ")");
+        Role rank=roles.roleOf(target.uuid());int booster=roles.boosterTier(target.uuid());
+        sender.sendMessage("Effective benefits: /string " + dev.turtleroles.service.RankStringCommand.seconds(rank,booster)
+            + "s cooldown; AFK 1 shard / " + dev.turtleroles.service.ShardRewards.interval(rank,booster)/1000 + "s; booster tier " + booster + ".");
     }
 
     private String roleDescription(PlayerRecord record) {

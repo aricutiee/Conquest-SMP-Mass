@@ -18,8 +18,7 @@ public final class RaceRuntime implements Listener {
     private final dev.turtleroles.combat.CooldownBars cooldownBars = new dev.turtleroles.combat.CooldownBars();
     RaceRuntime(RaceModule plugin) { this.plugin = plugin; healthKey = new NamespacedKey("biomeraces", "dragon_health"); }
     public static boolean holdsEgg(Player player) {
-        return player.getInventory().getItemInMainHand().getType() == Material.DRAGON_EGG
-            || player.getInventory().getItemInOffHand().getType() == Material.DRAGON_EGG;
+        return player.getInventory().contains(Material.DRAGON_EGG);
     }
     public void tick() {
         ticks++;
@@ -78,9 +77,9 @@ public final class RaceRuntime implements Listener {
         Race active = state.active();
         if (active != null) switch (active) {
             case BOGBORN -> { if (EnvironmentRules.headInWater(player)) effects.add(PotionEffectType.WATER_BREATHING); }
-            case ROOTBOUND -> { if (settings.onBlock("rootbound.passive-blocks", EnvironmentRules.standingOn(player))) effects.add(PotionEffectType.SPEED); }
-            case HOLLOW_EYED -> { if (state.dark) effects.add(PotionEffectType.NIGHT_VISION); }
-            case DWARF -> { if (player.getLocation().getY() < settings.number("dwarf.underground-height")) effects.add(PotionEffectType.HASTE); }
+            case ROOTBOUND -> { }
+            case HOLLOW_EYED -> { effects.add(PotionEffectType.SPEED); if (state.dark) effects.add(PotionEffectType.NIGHT_VISION); }
+            case DWARF -> effects.add(PotionEffectType.HASTE);
             case DRAGONBORN -> effects.addAll(Set.of(PotionEffectType.STRENGTH, PotionEffectType.SPEED, PotionEffectType.FIRE_RESISTANCE));
             default -> { }
         }

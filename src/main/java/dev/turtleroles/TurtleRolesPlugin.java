@@ -43,6 +43,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
     private dev.turtleroles.service.VirtualSpawners virtualSpawners;
     private dev.turtleroles.service.RankStringCommand rankString;
     private dev.turtleroles.analytics.ConquestAnalytics analytics;
+    public boolean isJuggernaut(org.bukkit.entity.Player player) { return eventSystem != null && eventSystem.isJuggernaut(player); }
     public String analyticsEvent(){return eventSystem==null?"":eventSystem.analyticsEvent();}
     private dev.turtleroles.service.OwnerTrollMode ownerTrollMode;
     public dev.turtleroles.service.VirtualSpawners virtualSpawners(){return virtualSpawners;}

@@ -64,7 +64,7 @@ public final class BadgeAssetGenerator {
         for (int i = 0; i < ROLES.size(); i++) {
             RoleArt role = ROLES.get(i);
             // Native-resolution artwork matches the font metrics exactly.
-            BufferedImage image = drawBadge(role);
+            BufferedImage image = withOreIcon(drawBadge(role), role);
             ImageIO.write(image, "png", badgeDir.resolve(role.texture).toFile());
             ImageIO.write(image, "png", textureDir.resolve(role.texture).toFile());
             ImageIO.write(scale(image, 4), "png", previewDir.resolve(role.id + "-8x.png").toFile());
@@ -178,6 +178,23 @@ public final class BadgeAssetGenerator {
         Files.copy(source, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
     }
 
+    private static BufferedImage withOreIcon(BufferedImage badge, RoleArt role) throws IOException {
+        String icon = switch(role.id) {
+            case "coal" -> "coal";
+            case "iron" -> "iron_ingot";
+            case "redstone" -> "redstone_dust";
+            case "diamond" -> "diamond";
+            case "netherite" -> "netherite_ingot";
+            default -> null;
+        };
+        if(icon == null) return badge;
+        BufferedImage ore = ImageIO.read(Path.of("design/ranks/"+icon+".png").toFile());
+        BufferedImage result = new BufferedImage(badge.getWidth()*2+18,16,BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g=result.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g.drawImage(ore,0,0,16,16,null);g.drawImage(badge,18,0,badge.getWidth()*2,16,null);g.dispose();
+        return result;
+    }
     private static BufferedImage drawBadge(RoleArt role) {
         // Draw on the actual eight-pixel GUI grid: no fractional downsampling.
         int iconWidth = role.id.equals("king") ? 13 : role.turtle ? 8 : 0;
@@ -191,6 +208,11 @@ public final class BadgeAssetGenerator {
             case "helper" -> 0xFFE151;
             case "media" -> 0xFF45C5;
             case "booster", "booster_x2" -> 0x9747D9;
+            case "coal" -> 0x444950;
+            case "iron" -> 0xECEFF2;
+            case "redstone" -> 0xF05A68;
+            case "diamond" -> 0x73DCEB;
+            case "netherite" -> 0x08080B;
             case "member" -> 0x697586;
             case "king" -> 0xF8D56A;
             default -> 0x5BCEFA;
@@ -240,7 +262,7 @@ public final class BadgeAssetGenerator {
             }
         }
         // Dark ink keeps the pastel flag and yellow helper badge readable.
-        int ink = (role.id.equals("owner") || role.id.equals("sser")) || role.id.equals("helper") || role.id.equals("king") ? 0x192337 : 0xFFFFFF;
+        int ink = (role.id.equals("owner") || role.id.equals("sser")) || role.id.equals("helper") || role.id.equals("king") || role.id.equals("iron") || role.id.equals("diamond") ? 0x192337 : 0xFFFFFF;
         if (role.id.equals("king")) drawKingLabel(image, 2 + iconWidth, argb(ink));
         else drawText(image, role.label, 2 + iconWidth, 1, argb(ink));
         return image;

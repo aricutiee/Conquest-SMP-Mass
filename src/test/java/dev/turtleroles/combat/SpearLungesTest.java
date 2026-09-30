@@ -57,6 +57,13 @@ class SpearLungesTest {
         uses(3);now.addAndGet(30_000);lunges=new SpearLunges(host,config,now::get);lunges.restore(player);assertEquals(1,gate());
     }
 
+    @Test void juggernautBypassesAndClearsRecoveryWithoutExemptingOthers(){
+        uses(3);lunges.close();var plugin=mock(dev.turtleroles.TurtleRolesPlugin.class);
+        var roles=mock(dev.turtleroles.service.RoleService.class);when(plugin.getServer()).thenReturn(server);when(plugin.roleService()).thenReturn(roles);
+        when(roles.roleOf(player.getUniqueId())).thenReturn(dev.turtleroles.role.Role.MEMBER);
+        when(plugin.isJuggernaut(player)).thenReturn(true);lunges=new SpearLunges(plugin,config,now::get);lunges.refresh(player);assertEquals(1,gate());
+        when(plugin.isJuggernaut(player)).thenReturn(false);lunges.refresh(player);assertEquals(1,gate());uses(3);assertEquals(0,gate());
+    }
     @Test void staffBypassesLungeGateButDemotionRestoresUnexpiredCooldown(){
         uses(3);assertEquals(0,gate());lunges.close();
         var plugin=mock(dev.turtleroles.TurtleRolesPlugin.class);var roles=mock(dev.turtleroles.service.RoleService.class);

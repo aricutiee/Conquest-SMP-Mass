@@ -6,6 +6,16 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 class ShardStoreTest {
  @TempDir Path dir;
+ @Test void setBalancePersistsZeroAndRejectsNegative()throws Exception {
+  Path f=dir.resolve("set.yml");var store=new PlayerStore(f);UUID id=UUID.randomUUID();
+  assertTrue(store.setShards(id,1000));assertEquals(1000,new PlayerStore(f).get(id).shards);
+  assertFalse(store.setShards(id,-1));assertEquals(1000,store.get(id).shards);
+  assertTrue(store.setShards(id,0));assertEquals(0,new PlayerStore(f).get(id).shards);
+ }
+ @Test void failedSetRollsBack()throws Exception {
+  var store=new PlayerStore(dir.resolve("blocked-set/p.yml"));UUID id=UUID.randomUUID();store.get(id).shards=42;
+  Files.writeString(dir.resolve("blocked-set"),"file");assertThrows(java.io.IOException.class,()->store.setShards(id,99));assertEquals(42,store.get(id).shards);
+ }
  @Test void paidRerollDebitsOnceAndSurvivesReconnectWithoutCooldownReset()throws Exception{
   var file=dir.resolve("players.yml");var store=new PlayerStore(file);UUID id=UUID.randomUUID();var s=store.get(id);s.base=Race.BOGBORN;s.shards=500;s.offenseUntil=123;s.defenseUntil=456;
   assertTrue(store.purchaseReroll(id,Race.DWARF,250));assertFalse(store.purchaseReroll(id,Race.DWARF,250));

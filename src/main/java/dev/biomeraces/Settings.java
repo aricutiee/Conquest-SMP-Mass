@@ -58,7 +58,20 @@ public final class Settings {
         YamlConfiguration config = new YamlConfiguration();
         config.load(new File(plugin.getDataFolder(), "races.yml"));
         try (InputStream stream = Objects.requireNonNull(plugin.getResource("races.yml"))) {
-            config.setDefaults(YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8)));
+            YamlConfiguration defaults = YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+            if (config.getInt("class-balance-version", 0) < 1) {
+                java.nio.file.Path original = new File(plugin.getDataFolder(), "races.yml").toPath();
+                java.nio.file.Path backup = original.resolveSibling("races.yml.pre-classes");
+                if (!java.nio.file.Files.exists(backup)) java.nio.file.Files.copy(original, backup);
+                for (String race : List.of("bogborn", "rootbound", "petalfolk", "hollow-eyed", "dwarf"))
+                    for (String key : defaults.getConfigurationSection(race).getKeys(false))
+                        if (!key.equals("visual")) config.set(race + "." + key, defaults.get(race + "." + key));
+                config.set("combat.offensive-cooldown-seconds", defaults.get("combat.offensive-cooldown-seconds"));
+                config.set("dragonborn.description", defaults.get("dragonborn.description"));
+                config.set("class-balance-version", 1);
+                config.save(original.toFile());
+            }
+            config.setDefaults(defaults);
         }
         return new Settings(config);
     }

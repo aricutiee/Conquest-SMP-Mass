@@ -27,14 +27,20 @@ public final class RankStringCommand implements CommandExecutor,Listener,AutoClo
         int base=switch(role){case COAL,BOOSTER->50;case IRON->45;case REDSTONE->40;case DIAMOND,BOOSTER_X2->30;case NETHERITE->15;default->60;};
         return Math.min(base,boosterTier>=2?30:boosterTier==1?50:60);
     }
-    public void start(){Objects.requireNonNull(plugin.getCommand("string")).setExecutor(this);Bukkit.getPluginManager().registerEvents(this,plugin);tick=Bukkit.getScheduler().runTaskTimer(plugin,()->{for(Player p:Bukkit.getOnlinePlayers()){String k=p.getUniqueId().toString();long left=data.getLong(k+".until")-System.currentTimeMillis();bars.timer(p,"string","String cooldown",left,data.getLong(k+".duration",60000));}},20,20);}
+    static long remaining(long until,long previousDuration,int seconds,long now){
+        if(until<=0||seconds<=0)return 0;
+        long usedAt=until-Math.max(0,previousDuration);
+        return Math.max(0,usedAt+seconds*1000L-now);
+    }
+    private int seconds(Player p){return seconds(plugin.roleService().roleOf(p.getUniqueId()),plugin.roleService().boosterTier(p.getUniqueId()));}
+    public void start(){Objects.requireNonNull(plugin.getCommand("string")).setExecutor(this);Bukkit.getPluginManager().registerEvents(this,plugin);tick=Bukkit.getScheduler().runTaskTimer(plugin,()->{for(Player p:Bukkit.getOnlinePlayers()){String k=p.getUniqueId().toString();int seconds=seconds(p);long left=remaining(data.getLong(k+".until"),data.getLong(k+".duration",60000),seconds,System.currentTimeMillis());bars.timer(p,"string","String cooldown",left,seconds*1000L);}},20,20);}
     @Override public boolean onCommand(CommandSender sender,Command command,String label,String[] args){
         if(!(sender instanceof Player p)){sender.sendMessage("Players only.");return true;}
         if(args.length!=0)return false;
         if(!p.hasPermission("stringplugin.use"))return true;
         if(!ClientCompatibility.authenticated(p)||p.isDead()||plugin.combat().tagged(p))return true;
-        String k=p.getUniqueId().toString();int seconds=seconds(plugin.roleService().roleOf(p.getUniqueId()),plugin.roleService().boosterTier(p.getUniqueId()));
-        long now=System.currentTimeMillis(),left=data.getLong(k+".until")-now;
+        String k=p.getUniqueId().toString();int seconds=seconds(p);
+        long now=System.currentTimeMillis(),left=remaining(data.getLong(k+".until"),data.getLong(k+".duration",60000),seconds,now);
         if(seconds>0&&left>0){p.sendMessage(VirtualSpawners.text("String is ready in "+((left+999)/1000)+" seconds."));return true;}
         ItemStack[] contents=p.getInventory().getStorageContents();int amount=0;
         for(int i=0;i<contents.length;i++)if(contents[i]==null||contents[i].getType().isAir()){contents[i]=new ItemStack(Material.STRING,64);amount+=64;}

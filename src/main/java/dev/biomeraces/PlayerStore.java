@@ -50,6 +50,11 @@ public final class PlayerStore {
         state.base=null;state.pendingRoll=result;state.shards-=price;
         try{save();return true;}catch(IOException e){state.base=old;state.pendingRoll=null;state.shards=balance;throw e;}
     }
+    public boolean setShards(UUID id,long amount) throws IOException {
+        if(amount<0)return false;
+        PlayerState state=get(id);long old=state.shards;state.shards=amount;
+        try{save();return true;}catch(IOException e){state.shards=old;throw e;}
+    }
     public boolean addShards(UUID id,long amount) throws IOException {
         if(amount<=0)return false;PlayerState state=get(id);long old=state.shards;
         try{state.shards=Math.addExact(old,amount);}catch(ArithmeticException e){return false;}

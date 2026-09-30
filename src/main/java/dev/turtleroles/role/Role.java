@@ -18,10 +18,10 @@ public enum Role {
     MEDIA("media", "MEDIA", 150, "\uE009", "media.png", new String[]{"#BD188F", "#FF45C5", "#FFA6E8"}),
     BOOSTER_X2("booster_x2", "BOOSTER X2", 130, "\uE00C", "booster_x2.png", new String[]{"#542080", "#9747D9", "#DBB0FF"}),
     BOOSTER("booster", "BOOSTER", 125, "\uE00B", "booster.png", new String[]{"#542080", "#9747D9", "#DBB0FF"}),
-    NETHERITE("netherite", "NETHERITE", 114, "\uE011", "netherite.png", new String[]{"#302636", "#635069", "#AE90B8"}),
+    NETHERITE("netherite", "NETHERITE", 114, "\uE011", "netherite.png", new String[]{"#08080B", "#101015", "#202028"}),
     DIAMOND("diamond", "DIAMOND", 113, "\uE010", "diamond.png", new String[]{"#146D80", "#32C9DE", "#A0F4FF"}),
-    REDSTONE("redstone", "REDSTONE", 112, "\uE00F", "redstone.png", new String[]{"#750D18", "#D82838", "#FF727C"}),
-    IRON("iron", "IRON", 111, "\uE00E", "iron.png", new String[]{"#777780", "#BBBBCC", "#EEEEFF"}),
+    REDSTONE("redstone", "REDSTONE", 112, "\uE00F", "redstone.png", new String[]{"#E84454", "#F05A68", "#FF8992"}),
+    IRON("iron", "IRON", 111, "\uE00E", "iron.png", new String[]{"#DADDE1", "#ECEFF2", "#FFFFFF"}),
     COAL("coal", "COAL", 110, "\uE00D", "coal.png", new String[]{"#303038", "#555560", "#92929C"}),
     MEMBER("member", "MEMBER", 100, "\uE007", "member.png", new String[]{"#454B55", "#626975", "#AEB5C0"});
 

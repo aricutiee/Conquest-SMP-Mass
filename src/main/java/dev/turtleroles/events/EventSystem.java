@@ -648,6 +648,8 @@ public final class EventSystem implements Listener, CommandExecutor, org.bukkit.
         saveState();
     }
 
+    public boolean isJuggernaut(Player player) { return kits.isActive(player) && !kits.isWarlord(player); }
+
     public void shutdown() {
         netheriteArmor.close();
         purge.close();
