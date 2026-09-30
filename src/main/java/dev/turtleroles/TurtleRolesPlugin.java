@@ -45,7 +45,6 @@ public final class TurtleRolesPlugin extends AriServerUtil {
     private dev.turtleroles.analytics.ConquestAnalytics analytics;
     public String analyticsEvent(){return eventSystem==null?"":eventSystem.analyticsEvent();}
     private dev.turtleroles.service.OwnerTrollMode ownerTrollMode;
-    private dev.turtleroles.service.FakePlayers fakePlayers;
     public dev.turtleroles.service.VirtualSpawners virtualSpawners(){return virtualSpawners;}
     public dev.biomeraces.RaceModule races(){return races;}
     public void cancelAfkSelection(java.util.UUID id){if(spawnNpcs!=null)spawnNpcs.cancelAfkSelection(id);}
@@ -220,7 +219,6 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         anticheat = new dev.turtleroles.anticheat.ConquestGrimIntegration(this);
         anticheat.start();
         getServer().getPluginManager().registerEvents(new dev.turtleroles.combat.WeaponDamageCaps(this),this);
-        fakePlayers=new dev.turtleroles.service.FakePlayers(this);fakePlayers.start();
         ownerTrollMode=new dev.turtleroles.service.OwnerTrollMode(this);ownerTrollMode.start();
         try{analytics=new dev.turtleroles.analytics.ConquestAnalytics(this);analytics.start();}catch(Exception e){getLogger().log(java.util.logging.Level.SEVERE,"Analytics failed to start",e);}
         roles.reconcileOnlineOps();
@@ -257,7 +255,6 @@ public final class TurtleRolesPlugin extends AriServerUtil {
     public void onDisable() {
         if(analytics!=null)analytics.close();
         if(ownerTrollMode!=null)ownerTrollMode.close();
-        if(fakePlayers!=null)fakePlayers.close();
         if (nicknames != null) nicknames.close();
         if (boosterKits != null) boosterKits.close();
         if (packs != null) packs.close();

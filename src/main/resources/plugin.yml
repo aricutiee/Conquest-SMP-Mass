@@ -14,10 +14,6 @@ commands:
   troll:
     description: Owner-only temporary personal Grim bypass.
     usage: /troll on|off
-  fakeplayers:
-    description: Owner-only simulated player displays.
-    usage: /fakeplayers <count>|afk|clear|status
-    aliases: [fake]
   staff:
     description: Browse recorded staff moderation actions.
     usage: /staff logs
