@@ -167,6 +167,7 @@ public final class LootDrops implements Listener,AutoCloseable {
             String coordinates=block.getWorld().getName()+" | X: "+block.getX()+" Y: "+block.getY()+" Z: "+block.getZ();
             state.set("last-drop",coordinates);save();
             String title=config.getString("title","LOOT DROP HAS SPAWNED");
+            for(Player observer:Bukkit.getOnlinePlayers())dev.turtleroles.analytics.ConquestAnalytics.action(observer,"MARK_PRESENT","supply_drop_spawn");
             Bukkit.broadcast(Component.text(title+"! "+coordinates,NamedTextColor.GOLD));
             for(Player player:Bukkit.getOnlinePlayers()) {
                 player.showTitle(Title.title(Component.text(title,NamedTextColor.RED),Component.text(coordinates,NamedTextColor.GOLD)));

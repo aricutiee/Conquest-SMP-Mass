@@ -40,10 +40,12 @@ public final class BoosterKits implements Listener, AutoCloseable {
             try {
                 if(cancel){
                     boolean changed=ledger.cancelStart();
+                    if(changed)dev.turtleroles.analytics.ConquestAnalytics.launch(false);
                     sender.sendMessage(changed?"SMP launch cancelled. Booster kits are locked until 24 hours after the next /smp start. You can now use /spawn border.":"The SMP is already waiting to start. Use /spawn border to confine the overworld to spawn.");
                     return true;
                 }
                 if(!ledger.start(System.currentTimeMillis())){sender.sendMessage("The SMP has already started. Its kit unlock timer has not been reset.");return true;}
+                dev.turtleroles.analytics.ConquestAnalytics.launch(true);
                 if(plugin.survival()!=null)plugin.survival().spawnArea().restoreBorder();
                 var title=net.kyori.adventure.title.Title.title(
                     Component.text("THE CONQUEST SMP HAS STARTED",TextColor.color(0x9747D9)).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD),
@@ -118,7 +120,7 @@ public final class BoosterKits implements Listener, AutoCloseable {
                 long seconds=(ledger.remaining(p.getUniqueId(),System.currentTimeMillis(),hours(p)*3_600_000L)+999)/1000;
                 p.sendMessage("Next kit in "+seconds/3600+"h "+seconds%3600/60+"m "+seconds%60+"s.");return;
             }
-            p.getInventory().setStorageContents(plan);p.sendMessage(GameplayBypass.allowed(plugin,p)?"Booster kit claimed with staff bypass.":"Booster kit claimed. Your next kit is available in "+hours(p)+" hours.");
+            p.getInventory().setStorageContents(plan);dev.turtleroles.analytics.ConquestAnalytics.action(p,"REWARD","booster_kit");p.sendMessage(GameplayBypass.allowed(plugin,p)?"Booster kit claimed with staff bypass.":"Booster kit claimed. Your next kit is available in "+hours(p)+" hours.");
             Bukkit.getScheduler().runTask(plugin,()->p.closeInventory());
         } catch(Exception ex) { plugin.getLogger().log(java.util.logging.Level.SEVERE,"Kit claim failed",ex);p.sendMessage("Kit storage is unavailable. Contact an administrator."); }
     }

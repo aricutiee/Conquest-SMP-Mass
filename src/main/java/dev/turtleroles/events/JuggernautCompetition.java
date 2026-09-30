@@ -48,6 +48,7 @@ final class JuggernautCompetition implements Listener,AutoCloseable {
         if(!(cause instanceof Player) && event.getDamager() instanceof Projectile projectile && projectile.getShooter() instanceof Player owner)cause=owner;
         if(!(cause instanceof Player attacker) && event.getDamager() instanceof Player)cause=event.getDamager();
         if(!(cause instanceof Player attacker)||attacker.getUniqueId().equals(target.getUniqueId()))return;
+        dev.turtleroles.analytics.ConquestAnalytics.action(attacker,"PARTICIPATE","juggernaut_or_warlord_damage");
         ensureRun();ranking.add(attacker.getUniqueId(),attacker.getName(),event.getFinalDamage(),target.getHealth());dirty=true;
     }
     void defeated(Location location) {

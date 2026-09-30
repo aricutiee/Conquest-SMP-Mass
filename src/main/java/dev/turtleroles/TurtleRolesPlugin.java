@@ -42,6 +42,8 @@ public final class TurtleRolesPlugin extends AriServerUtil {
     private dev.turtleroles.service.SpawnNpcs spawnNpcs;
     private dev.turtleroles.service.VirtualSpawners virtualSpawners;
     private dev.turtleroles.service.RankStringCommand rankString;
+    private dev.turtleroles.analytics.ConquestAnalytics analytics;
+    public String analyticsEvent(){return eventSystem==null?"":eventSystem.analyticsEvent();}
     private dev.turtleroles.service.OwnerTrollMode ownerTrollMode;
     private dev.turtleroles.service.FakePlayers fakePlayers;
     public dev.turtleroles.service.VirtualSpawners virtualSpawners(){return virtualSpawners;}
@@ -220,6 +222,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
         getServer().getPluginManager().registerEvents(new dev.turtleroles.combat.WeaponDamageCaps(this),this);
         fakePlayers=new dev.turtleroles.service.FakePlayers(this);fakePlayers.start();
         ownerTrollMode=new dev.turtleroles.service.OwnerTrollMode(this);ownerTrollMode.start();
+        try{analytics=new dev.turtleroles.analytics.ConquestAnalytics(this);analytics.start();}catch(Exception e){getLogger().log(java.util.logging.Level.SEVERE,"Analytics failed to start",e);}
         roles.reconcileOnlineOps();
         getServer().getOnlinePlayers().forEach(packs::sendOnJoin);
         getLogger().info("Conquest SMP enabled: roles, badges, moderation and ServerUtil administration are running in one plugin.");
@@ -252,6 +255,7 @@ public final class TurtleRolesPlugin extends AriServerUtil {
 
     @Override
     public void onDisable() {
+        if(analytics!=null)analytics.close();
         if(ownerTrollMode!=null)ownerTrollMode.close();
         if(fakePlayers!=null)fakePlayers.close();
         if (nicknames != null) nicknames.close();

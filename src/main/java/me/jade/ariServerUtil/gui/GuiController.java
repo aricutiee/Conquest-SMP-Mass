@@ -608,6 +608,7 @@ public final class GuiController {
                     int recipients = 0;
                     for (Player recipient : Bukkit.getOnlinePlayers()) {
                         recipients++;
+                        dev.turtleroles.analytics.ConquestAnalytics.action(recipient,"KEY_ALL","delivered_items_or_overflow");
                         for (ItemStack item : items) {
                             Map<Integer, ItemStack> overflow = recipient.getInventory().addItem(item.clone());
                             overflow.values().forEach(leftover -> recipient.getWorld().dropItemNaturally(recipient.getLocation(), leftover));

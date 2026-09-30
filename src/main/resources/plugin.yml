@@ -8,6 +8,9 @@ description: Conquest SMP races, utilities, events, TurtleRoles and KingsCrown i
 softdepend: [KingsCrown, GrimAC, AltDetector, ClientPolicy, ModDetector, SimplePluginHider, floodgate, AuthMe, Essentials, EssentialsSpawn, packetevents]
 
 commands:
+  analytics:
+    description: Private owner analytics status, export and markers.
+    usage: /analytics [export|mark <label>]
   troll:
     description: Owner-only temporary personal Grim bypass.
     usage: /troll on|off

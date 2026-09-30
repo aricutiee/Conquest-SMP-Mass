@@ -42,6 +42,7 @@ import java.util.UUID;
 
 /** Shared administration, lifecycle and prizes for Conquest SMP events. */
 public final class EventSystem implements Listener, CommandExecutor, org.bukkit.command.TabCompleter {
+    public String analyticsEvent(){return state==State.RUNNING||state==State.PREPARING?active+":"+runId:"";}
     public enum State { IDLE, PREPARING, RUNNING, WON, ENDING }
     private record Pending(long expiresAt) {}
     private static final String[] IDS = {"egg", "capture", "crown", "mace", "assassins", "warlord", "pvp"};
@@ -383,6 +384,7 @@ public final class EventSystem implements Listener, CommandExecutor, org.bukkit.
         if(safePrize.getType()==Material.MACE){player.sendMessage("Maces can only be earned by defeating the Juggernaut.");return;}
         player.getInventory().addItem(safePrize).values().forEach(extra ->
                 player.getWorld().dropItemNaturally(player.getLocation(), extra));
+        dev.turtleroles.analytics.ConquestAnalytics.action(player,"REWARD","event_prize:"+id);
         player.sendMessage(Component.text("You received the " + title(id) + " prize.", NamedTextColor.GOLD));
     }
 
